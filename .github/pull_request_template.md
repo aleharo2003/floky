@@ -4,7 +4,7 @@
 
 ## Story
 
-<!-- Clave de la issue, por ejemplo CTJ-232. -->
+<!-- Clave de la issue de Jira, por ejemplo XXX-57. -->
 
 ## Cómo se probó
 
