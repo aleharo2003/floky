@@ -1,0 +1,509 @@
+{
+  "generatedAt": "2026-10-21T20:58:38.018Z",
+  "renderer": "Mermaid 11.12.0",
+  "diagrams": [
+    {
+      "id": "ARQ-01",
+      "title": "ARQ-01. Contexto y actores",
+      "document": "01-arquitectura.md",
+      "anchor": "arq-01",
+      "stories": [
+        "HU-110",
+        "HU-140",
+        "HU-162",
+        "HU-181",
+        "HU-200",
+        "HU-211"
+      ],
+      "width": 1315,
+      "height": 611
+    },
+    {
+      "id": "ARQ-02",
+      "title": "ARQ-02. Contenedores: qué corre en el local y qué en la nube",
+      "document": "01-arquitectura.md",
+      "anchor": "arq-02",
+      "stories": [
+        "HU-232",
+        "HU-250",
+        "HU-251",
+        "HU-252",
+        "HU-103"
+      ],
+      "width": 1553,
+      "height": 788
+    },
+    {
+      "id": "ARQ-03",
+      "title": "ARQ-03. Un código Django, dos modos",
+      "document": "01-arquitectura.md",
+      "anchor": "arq-03",
+      "stories": [
+        "HU-100",
+        "HU-104",
+        "HU-232"
+      ],
+      "width": 1478,
+      "height": 729
+    },
+    {
+      "id": "ARQ-04",
+      "title": "ARQ-04. Locales como tenants",
+      "document": "01-arquitectura.md",
+      "anchor": "arq-04",
+      "stories": [
+        "HU-240",
+        "HU-241",
+        "HU-243",
+        "HU-200",
+        "HU-210"
+      ],
+      "width": 1045,
+      "height": 517
+    },
+    {
+      "id": "ARQ-05",
+      "title": "ARQ-05. Entornos: desarrollo, pruebas y producción",
+      "document": "01-arquitectura.md",
+      "anchor": "arq-05",
+      "stories": [
+        "HU-231",
+        "HU-234",
+        "HU-235",
+        "HU-236"
+      ],
+      "width": 1324,
+      "height": 500
+    },
+    {
+      "id": "DOM-01",
+      "title": "DOM-01. Mapa de capacidades: MVP y v2",
+      "document": "02-dominio.md",
+      "anchor": "dom-01",
+      "stories": [
+        "HU-132",
+        "HU-140",
+        "HU-162",
+        "HU-211",
+        "HU-261",
+        "HU-310",
+        "HU-320",
+        "HU-330"
+      ],
+      "width": 1594,
+      "height": 427
+    },
+    {
+      "id": "DOM-02",
+      "title": "DOM-02. Del pedido al comprobante",
+      "document": "02-dominio.md",
+      "anchor": "dom-02",
+      "stories": [
+        "HU-135",
+        "HU-140",
+        "HU-142",
+        "HU-162",
+        "HU-165",
+        "HU-226",
+        "HU-223"
+      ],
+      "width": 1773,
+      "height": 328
+    },
+    {
+      "id": "DOM-03",
+      "title": "DOM-03. ¿De quién es cada dato?",
+      "document": "02-dominio.md",
+      "anchor": "dom-03",
+      "stories": [
+        "HU-120",
+        "HU-112",
+        "HU-243",
+        "HU-211",
+        "HU-255",
+        "HU-260"
+      ],
+      "width": 1334,
+      "height": 583
+    },
+    {
+      "id": "CLA-01",
+      "title": "CLA-01. Salón y venta",
+      "document": "03-clases.md",
+      "anchor": "cla-01",
+      "stories": [
+        "HU-120",
+        "HU-131",
+        "HU-135",
+        "HU-140",
+        "HU-142",
+        "HU-162"
+      ],
+      "width": 820,
+      "height": 1153
+    },
+    {
+      "id": "CLA-02",
+      "title": "CLA-02. Caja, trazabilidad y Mis finanzas",
+      "document": "03-clases.md",
+      "anchor": "cla-02",
+      "stories": [
+        "HU-150",
+        "HU-152",
+        "HU-220",
+        "HU-223",
+        "HU-225",
+        "HU-210",
+        "HU-212",
+        "HU-182"
+      ],
+      "width": 1151,
+      "height": 799
+    },
+    {
+      "id": "DAT-01",
+      "title": "DAT-01. Base local: núcleo de venta y outbox",
+      "document": "04-datos.md",
+      "anchor": "dat-01",
+      "stories": [
+        "HU-100",
+        "HU-140",
+        "HU-244",
+        "HU-260"
+      ],
+      "width": 1316,
+      "height": 1516
+    },
+    {
+      "id": "DAT-02",
+      "title": "DAT-02. Base en la nube: locales, membresías, réplica y finanzas",
+      "document": "04-datos.md",
+      "anchor": "dat-02",
+      "stories": [
+        "HU-240",
+        "HU-241",
+        "HU-243",
+        "HU-263",
+        "HU-264",
+        "HU-210"
+      ],
+      "width": 2683,
+      "height": 630
+    },
+    {
+      "id": "TEC-01",
+      "title": "TEC-01. Cobrar e imprimir sin esperar a ARCA",
+      "document": "05-secuencias-tecnicas.md",
+      "anchor": "tec-01",
+      "stories": [
+        "HU-140",
+        "HU-171",
+        "HU-271"
+      ],
+      "width": 1225,
+      "height": 1128
+    },
+    {
+      "id": "TEC-02",
+      "title": "TEC-02. Emitir la factura con CAE",
+      "document": "05-secuencias-tecnicas.md",
+      "anchor": "tec-02",
+      "stories": [
+        "HU-161",
+        "HU-162",
+        "HU-163",
+        "HU-166"
+      ],
+      "width": 837,
+      "height": 1217
+    },
+    {
+      "id": "TEC-03",
+      "title": "TEC-03. Reintento seguro: nunca dos facturas, nunca un número salteado",
+      "document": "05-secuencias-tecnicas.md",
+      "anchor": "tec-03",
+      "stories": [
+        "HU-164",
+        "HU-168"
+      ],
+      "width": 640,
+      "height": 881
+    },
+    {
+      "id": "TEC-04",
+      "title": "TEC-04. Sincronización por outbox",
+      "document": "05-secuencias-tecnicas.md",
+      "anchor": "tec-04",
+      "stories": [
+        "HU-260",
+        "HU-261",
+        "HU-262",
+        "HU-263",
+        "HU-264",
+        "HU-255"
+      ],
+      "width": 847,
+      "height": 1096
+    },
+    {
+      "id": "TEC-05",
+      "title": "TEC-05. Del pull request a producción",
+      "document": "05-secuencias-tecnicas.md",
+      "anchor": "tec-05",
+      "stories": [
+        "HU-230",
+        "HU-233",
+        "HU-234",
+        "HU-235",
+        "HU-271"
+      ],
+      "width": 1227,
+      "height": 794
+    },
+    {
+      "id": "TEC-06",
+      "title": "TEC-06. Vincular el servidor local y actualizarlo a distancia",
+      "document": "05-secuencias-tecnicas.md",
+      "anchor": "tec-06",
+      "stories": [
+        "HU-252",
+        "HU-254",
+        "HU-255"
+      ],
+      "width": 1037,
+      "height": 1136
+    },
+    {
+      "id": "FUN-01",
+      "title": "FUN-01. Ingresar con PIN y abrir la caja",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-01",
+      "stories": [
+        "HU-110",
+        "HU-113",
+        "HU-150"
+      ],
+      "width": 664,
+      "height": 1035
+    },
+    {
+      "id": "FUN-02",
+      "title": "FUN-02. Abrir una mesa y cargar la comanda por código",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-02",
+      "stories": [
+        "HU-131",
+        "HU-132",
+        "HU-133",
+        "HU-134",
+        "HU-135",
+        "HU-130"
+      ],
+      "width": 688,
+      "height": 2168
+    },
+    {
+      "id": "FUN-03",
+      "title": "FUN-03. Cobrar, facturar o finalizar sin comprobante",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-03",
+      "stories": [
+        "HU-136",
+        "HU-140",
+        "HU-162",
+        "HU-164",
+        "HU-226",
+        "HU-172"
+      ],
+      "width": 700,
+      "height": 1866
+    },
+    {
+      "id": "FUN-04",
+      "title": "FUN-04. Cerrar la caja",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-04",
+      "stories": [
+        "HU-152",
+        "HU-153",
+        "HU-224",
+        "HU-262"
+      ],
+      "width": 824,
+      "height": 2235
+    },
+    {
+      "id": "FUN-05",
+      "title": "FUN-05. Anular una venta",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-05",
+      "stories": [
+        "HU-142",
+        "HU-165"
+      ],
+      "width": 638,
+      "height": 1456
+    },
+    {
+      "id": "FUN-06",
+      "title": "FUN-06. Mis finanzas: cargar un movimiento",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-06",
+      "stories": [
+        "HU-211",
+        "HU-212",
+        "HU-214"
+      ],
+      "width": 755,
+      "height": 1149
+    },
+    {
+      "id": "FUN-07",
+      "title": "FUN-07. El contador consulta la facturación",
+      "document": "06-flujos-funcionales.md",
+      "anchor": "fun-07",
+      "stories": [
+        "HU-200",
+        "HU-201",
+        "HU-202",
+        "HU-203",
+        "HU-242"
+      ],
+      "width": 808,
+      "height": 1192
+    },
+    {
+      "id": "EST-01",
+      "title": "EST-01. Comprobante fiscal",
+      "document": "07-estados.md",
+      "anchor": "est-01",
+      "stories": [
+        "HU-162",
+        "HU-164",
+        "HU-165",
+        "HU-226",
+        "HU-168"
+      ],
+      "width": 725,
+      "height": 704
+    },
+    {
+      "id": "EST-02",
+      "title": "EST-02. Sesión de mesa",
+      "document": "07-estados.md",
+      "anchor": "est-02",
+      "stories": [
+        "HU-130",
+        "HU-131",
+        "HU-136",
+        "HU-137",
+        "HU-140"
+      ],
+      "width": 665,
+      "height": 451
+    },
+    {
+      "id": "EST-03",
+      "title": "EST-03. Turno de caja",
+      "document": "07-estados.md",
+      "anchor": "est-03",
+      "stories": [
+        "HU-150",
+        "HU-152",
+        "HU-154",
+        "HU-223",
+        "HU-262"
+      ],
+      "width": 627,
+      "height": 641
+    },
+    {
+      "id": "EST-04",
+      "title": "EST-04. Fila del outbox y lote de sincronización",
+      "document": "07-estados.md",
+      "anchor": "est-04",
+      "stories": [
+        "HU-260",
+        "HU-261",
+        "HU-263",
+        "HU-265"
+      ],
+      "width": 318,
+      "height": 566
+    },
+    {
+      "id": "OPS-01",
+      "title": "OPS-01. Del sistema anterior al nuevo",
+      "document": "08-operacion.md",
+      "anchor": "ops-01",
+      "stories": [
+        "HU-123",
+        "HU-194",
+        "HU-250",
+        "HU-270",
+        "HU-280",
+        "HU-281"
+      ],
+      "width": 550,
+      "height": 1595
+    },
+    {
+      "id": "OPS-02",
+      "title": "OPS-02. Backups y restauración",
+      "document": "08-operacion.md",
+      "anchor": "ops-02",
+      "stories": [
+        "HU-246",
+        "HU-253",
+        "HU-254"
+      ],
+      "width": 1783,
+      "height": 336
+    },
+    {
+      "id": "OPS-03",
+      "title": "OPS-03. Alertas operativas",
+      "document": "08-operacion.md",
+      "anchor": "ops-03",
+      "stories": [
+        "HU-161",
+        "HU-245",
+        "HU-255",
+        "HU-265",
+        "HU-266"
+      ],
+      "width": 1276,
+      "height": 478
+    },
+    {
+      "id": "FUT-01",
+      "title": "FUT-01. Menú QR multilenguaje",
+      "document": "09-version-2.md",
+      "anchor": "fut-01",
+      "stories": [
+        "HU-300",
+        "HU-302",
+        "HU-310",
+        "HU-311"
+      ],
+      "width": 1030,
+      "height": 550
+    },
+    {
+      "id": "FUT-02",
+      "title": "FUT-02. Stock de bebidas",
+      "document": "09-version-2.md",
+      "anchor": "fut-02",
+      "stories": [
+        "HU-320",
+        "HU-321",
+        "HU-322",
+        "HU-323",
+        "HU-324"
+      ],
+      "width": 1412,
+      "height": 314
+    }
+  ],
+  "failures": []
+}

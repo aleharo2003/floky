@@ -1,0 +1,19 @@
+flowchart TD
+    A["F10: cierre de caja"] --> B{"¿Mesas abiertas?"}
+    B -->|"sí"| C{"¿Es el dueño?"}
+    C -->|"no"| D["Aviso con la lista de mesas"]
+    C -->|"sí, fuerza"| E
+    B -->|"no"| E["Ver esperado por medio de pago"]
+    E --> F["Contar billetes y, opcional, posnet, QR y banco"]
+    F --> G{"¿Hay diferencia?"}
+    G -->|"sí"| H["Sugerencias de cobros con ese importe"]
+    H --> I{"¿Era un medio mal cargado?"}
+    I -->|"sí"| J["Corregir medio con motivo"] --> E
+    I -->|"no"| K["Comentar la diferencia"]
+    G -->|"no"| L["F10 otra vez para confirmar"]
+    K --> L
+    L --> M["Turno cerrado, reporte impreso"]
+    M --> N["Envío a la nube sin esperar"]
+    N --> O{"¿Hay internet?"}
+    O -->|"no"| P["Aviso: se envía al volver la conexión"]
+    O -->|"sí"| Q["Dueño ve el cierre desde afuera"]

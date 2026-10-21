@@ -1,0 +1,56 @@
+classDiagram
+    class Producto {
+        codigo
+        nombre
+        precio
+        alicuotaIva
+        activo
+    }
+    class SesionMesa {
+        mesa
+        mozo
+        comensales
+        estado
+        abrir()
+        pedirPrecuenta(descuento)
+    }
+    class Comanda {
+        numero
+        claveIdempotencia
+        enviar()
+    }
+    class LineaComanda {
+        nombreCopiado
+        precioUnitarioCopiado
+        cantidad
+        aclaraciones
+        anular(motivo)
+    }
+    class Venta {
+        subtotal
+        descuento
+        total
+        estadoFiscal
+        cobrar(pagos)
+        anular(motivo)
+        finalizarSinComprobante()
+    }
+    class Pago {
+        medio
+        importe
+        corregirMedio(nuevo, motivo)
+    }
+    class ComprobanteFiscal {
+        tipo
+        puntoVenta
+        numero
+        condicionIvaReceptor
+        cae
+        vencimientoCae
+    }
+    SesionMesa "1" --> "*" Comanda
+    Comanda "1" --> "*" LineaComanda
+    LineaComanda "*" --> "1" Producto : copia nombre y precio
+    SesionMesa "1" --> "0..1" Venta
+    Venta "1" --> "1..2" Pago
+    Venta "1" --> "0..*" ComprobanteFiscal : factura y notas de crédito

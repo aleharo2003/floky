@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant Dev as Desarrollador
+    participant GH as GitHub
+    participant CI as GitHub Actions
+    participant Rev as Revisor
+    participant Pru as Pruebas
+    participant Prod as Producción
+    Dev->>GH: abre pull request
+    GH->>CI: formato, lint, tipos, tests, build, auditoría, secretos
+    CI-->>GH: verde o rojo
+    Rev->>GH: revisa y aprueba
+    Dev->>GH: merge a main
+    GH->>CI: imagen de la API, front, instalador
+    CI->>Pru: migraciones, despliegue nube y canal pruebas
+    CI->>Pru: smoke test
+    Dev->>GH: tag vX.Y.Z
+    GH->>CI: pipeline de producción
+    CI-->>Rev: pide aprobación del environment produccion
+    Rev->>CI: aprueba
+    CI->>Prod: mismo artefacto, canal estable

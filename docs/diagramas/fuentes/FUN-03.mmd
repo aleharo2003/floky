@@ -1,0 +1,16 @@
+flowchart TD
+    A["F4: precuenta"] --> B["F6: cobrar"]
+    B --> C["Uno o dos medios de pago"]
+    C --> D{"¿Suman el total?"}
+    D -->|"no"| C
+    D -->|"sí"| E["Venta guardada, mesa libre"]
+    E --> F{"¿Factura o F9?"}
+    F -->|"F9"| G["Sin comprobante<br/>lista aparte para el contador"]
+    F -->|"F8 factura"| H["Condición IVA del receptor<br/>consumidor final por defecto"]
+    H --> I{"¿Hay internet?"}
+    I -->|"no"| J["Ticket provisorio<br/>no válido como factura"]
+    J --> K["Pendiente de CAE<br/>se reintenta solo"]
+    I -->|"sí"| L{"¿ARCA aprueba?"}
+    L -->|"sí"| M["Factura con CAE y QR impresa"]
+    L -->|"rechaza"| N["Pendiente con motivo<br/>reintentar o dejar para después"]
+    K --> L

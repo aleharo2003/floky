@@ -1,0 +1,17 @@
+flowchart LR
+    Lucia["Usuaria: Lucía, dueña"]
+    Contador["Usuario: Marcos, contador"]
+    subgraph Membresias["Membresías"]
+        M1["Lucía · Local Centro · dueña"]
+        M2["Lucía · Local Norte · dueña"]
+        M3["Marcos · Local Centro · contador"]
+    end
+    subgraph Datos["Datos en la nube, cada fila con tenant_id"]
+        L1[("Local Centro<br/>ventas, comprobantes, caja")]
+        L2[("Local Norte<br/>ventas, comprobantes, caja")]
+        Fin[("Mis finanzas de Lucía<br/>tenant_id opcional")]
+    end
+    Lucia --> M1 --> L1
+    Lucia --> M2 --> L2
+    Contador --> M3 -->|"solo comprobantes"| L1
+    Lucia -->|"segunda clave"| Fin

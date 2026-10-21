@@ -1,0 +1,29 @@
+flowchart TB
+    subgraph Front["frontend: React"]
+        Pantallas["Pantallas"]
+        Contratos["capa de servicios<br/>contratos tipados"]
+        Pantallas --> Contratos
+    end
+    subgraph Back["backend: un proyecto Django"]
+        Vistas["Vistas DRF<br/>serializers y permisos"]
+        Servicios["Servicios de dominio<br/>cobrar, cerrar caja, facturar"]
+        Repos["Modelos y consultas"]
+        Vistas --> Servicios --> Repos
+        subgraph SoloLocal["solo FLOKY_MODE=local"]
+            Fiscal["fiscal: worker ARCA"]
+            Impresion["printing: ESC/POS"]
+            Emisor["sync_sender: outbox"]
+        end
+        subgraph SoloNube["solo FLOKY_MODE=cloud"]
+            Receptor["sync_receiver: ingesta"]
+            Panel["dashboard y accountant"]
+            Finanzas["finances"]
+        end
+        Servicios --> Fiscal
+        Servicios --> Emisor
+        Servicios --> Impresion
+        Receptor --> Repos
+        Panel --> Repos
+        Finanzas --> Repos
+    end
+    Contratos -->|"HTTP JSON"| Vistas

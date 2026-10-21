@@ -1,0 +1,68 @@
+erDiagram
+    USER ||--o{ MEMBERSHIP : has
+    TENANT ||--o{ MEMBERSHIP : grants
+    TENANT ||--o{ DEVICE : links
+    TENANT ||--o{ SALE_REPLICA : receives
+    TENANT ||--o{ FISCAL_DOCUMENT_REPLICA : receives
+    TENANT ||--o{ SYNC_BATCH : records
+    USER ||--o{ FINANCE_ENTRY : keeps
+    FINANCE_CATEGORY ||--o{ FINANCE_ENTRY : classifies
+    TENANT |o--o{ FINANCE_ENTRY : optional
+    USER {
+        uuid id PK
+        string email UK
+    }
+    MEMBERSHIP {
+        uuid user_id FK
+        uuid tenant_id FK
+        string role "owner o accountant"
+        bool is_active
+    }
+    TENANT {
+        uuid id PK
+        string name
+        string cuit
+        int sync_interval_min
+    }
+    DEVICE {
+        uuid id PK
+        uuid tenant_id FK
+        string credential_hash
+        string version
+        timestamp last_seen_at
+    }
+    SALE_REPLICA {
+        uuid id PK "mismo id que en el local"
+        uuid tenant_id FK "con RLS"
+        int version
+        numeric total
+        string fiscal_status
+    }
+    FISCAL_DOCUMENT_REPLICA {
+        uuid id PK
+        uuid tenant_id FK "con RLS"
+        string type
+        int number
+        numeric net
+        numeric vat
+    }
+    SYNC_BATCH {
+        uuid id PK
+        uuid tenant_id FK
+        bigint sequence_to
+        int applied
+        int ignored
+        string result
+    }
+    FINANCE_ENTRY {
+        uuid id PK
+        uuid owner_id FK
+        uuid tenant_id FK "opcional"
+        date date
+        numeric amount
+    }
+    FINANCE_CATEGORY {
+        uuid id PK
+        string name
+        bool is_business
+    }

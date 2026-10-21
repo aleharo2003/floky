@@ -1,0 +1,12 @@
+flowchart TD
+    A["Elegir venta y motivo"] --> B{"¿Turno de la venta?"}
+    B -->|"cerrado"| C{"¿Es el dueño?"}
+    C -->|"no"| D["Rechazado"]
+    C -->|"sí"| E["Ajuste en el turno actual"]
+    B -->|"abierto"| F{"¿Tiene factura autorizada?"}
+    E --> F
+    F -->|"no"| G["Venta anulada, sale de los totales"]
+    F -->|"sí"| H["Pedir nota de crédito a ARCA"]
+    H --> I{"¿Autorizada?"}
+    I -->|"sí"| G
+    I -->|"no"| J["Venta sigue cobrada<br/>anulación pendiente con motivo"]

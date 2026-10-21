@@ -1,0 +1,22 @@
+flowchart TB
+    Mozo["Mozo<br/>abre mesas y carga comandas"]
+    Cajero["Cajero<br/>cobra, factura y cierra la caja"]
+    Dueno["Dueño<br/>configura, mira el negocio<br/>y lleva sus finanzas"]
+    Contador["Contador<br/>solo facturación, solo lectura"]
+    subgraph Sistema["Sistema nuevo"]
+        direction LR
+        Local["En el local<br/>vender aunque no haya internet"]
+        Nube["En la nube<br/>ver desde cualquier lugar"]
+        Local -->|"copia cada X<br/>y al cerrar caja"| Nube
+    end
+    ARCA["ARCA<br/>autoriza facturas con CAE"]
+    Impresora["Impresora térmica ESC/POS<br/>tickets y facturas"]
+    Cliente["Cliente del local<br/>recibe su comprobante"]
+    Mozo --> Local
+    Cajero --> Local
+    Dueno --> Local
+    Dueno --> Nube
+    Contador --> Nube
+    Local --->|"pide CAE<br/>cuando hay conexión"| ARCA
+    Local -->|"imprime"| Impresora
+    Impresora --> Cliente

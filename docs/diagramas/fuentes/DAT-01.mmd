@@ -1,0 +1,74 @@
+erDiagram
+    TENANT ||--o{ CASH_SHIFT : has
+    TENANT ||--o{ SALE : records
+    CASH_SHIFT ||--o{ SALE : groups
+    SALE ||--|{ PAYMENT : paid_with
+    SALE ||--o{ FISCAL_DOCUMENT : documented_by
+    SALE ||--o{ FISCAL_JOB : queues
+    SALE ||--o{ PRINT_JOB : queues
+    TENANT ||--o{ SYNC_OUTBOX : emits
+    TENANT ||--o{ AUDIT_LOG : records
+    TENANT {
+        uuid id PK
+        string cuit
+        int point_of_sale
+    }
+    SALE {
+        uuid id PK "UUID v7 generado en el local"
+        uuid tenant_id FK
+        uuid cash_shift_id FK
+        numeric total
+        string status
+        string fiscal_status
+        int version
+    }
+    PAYMENT {
+        uuid id PK
+        uuid sale_id FK
+        string method
+        numeric amount
+    }
+    FISCAL_DOCUMENT {
+        uuid id PK
+        uuid sale_id FK
+        string type
+        int number
+        string cae
+        string status
+    }
+    FISCAL_JOB {
+        uuid id PK
+        string status
+        int attempts
+        timestamp next_attempt_at
+    }
+    PRINT_JOB {
+        uuid id PK
+        string printer
+        string status
+    }
+    SYNC_OUTBOX {
+        uuid id PK
+        uuid tenant_id FK
+        bigint sequence UK
+        string entity
+        uuid entity_id
+        int version
+        jsonb payload
+        timestamp confirmed_at
+    }
+    AUDIT_LOG {
+        uuid id PK
+        uuid tenant_id FK
+        string actor_type
+        string actor_id
+        string action
+        jsonb before
+        jsonb after
+    }
+    CASH_SHIFT {
+        uuid id PK
+        uuid tenant_id FK
+        numeric expected_cash
+        numeric counted_cash
+    }

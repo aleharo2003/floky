@@ -1,0 +1,12 @@
+flowchart TD
+    A["Dueño en el portal"] --> B["Candado de la barra"]
+    B --> C["Segunda clave"]
+    C --> D{"¿Correcta?"}
+    D -->|"no"| E{"¿5 seguidas?"}
+    E -->|"sí"| F["Área bloqueada unos minutos"]
+    E -->|"no"| C
+    D -->|"sí"| G["Fecha, tipo, categoría, importe, medio, local opcional"]
+    G --> H{"¿Datos válidos?"}
+    H -->|"no"| I["Error claro, no se guarda"] --> G
+    H -->|"sí"| J["Movimiento y auditoría en una transacción"]
+    J --> K["Aparece en su mes y en el saldo"]

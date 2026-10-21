@@ -1,0 +1,11 @@
+stateDiagram-v2
+    state "Pendiente" as Pend
+    state "En vuelo" as Vuelo
+    state "Confirmada" as Conf
+    state "Purgada" as Purg
+    [*] --> Pend: misma transacción que el cambio
+    Pend --> Vuelo: entra en un lote
+    Vuelo --> Conf: la nube devuelve su secuencia
+    Vuelo --> Pend: error de red o rechazo, reintento
+    Conf --> Purg: pasan N días
+    Purg --> [*]

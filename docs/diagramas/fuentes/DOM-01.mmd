@@ -1,0 +1,27 @@
+flowchart TB
+    subgraph MVP["MVP: reemplazar el sistema anterior"]
+        Salon["Salón y comandas"]
+        Cobro["Cobro y caja"]
+        Fact["Facturación ARCA"]
+        Imp["Impresión"]
+        Traz["Trazabilidad del turno"]
+        Sync["Sincronización"]
+        Panel["Panel del dueño"]
+        Cont["Vista del contador"]
+        Fin["Mis finanzas"]
+        Salon --> Cobro --> Fact --> Imp
+        Cobro --> Traz
+        Cobro --> Sync --> Panel
+        Sync --> Cont
+        Fin -.-> Panel
+    end
+    subgraph V2["v2"]
+        I18n["Multilenguaje"]
+        QR["Menú QR"]
+        Stock["Stock de bebidas"]
+        Cel["Pedidos desde celulares"]
+    end
+    Salon -.-> Cel
+    Salon -.-> Stock
+    I18n -.-> QR
+    Sync -.-> QR

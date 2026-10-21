@@ -1,0 +1,11 @@
+flowchart TD
+    A["Elegir usuario y escribir PIN"] --> B{"¿PIN correcto?"}
+    B -->|"no"| C{"¿5 intentos fallidos?"}
+    C -->|"no"| A
+    C -->|"sí"| D["Usuario bloqueado unos minutos<br/>queda auditado"]
+    B -->|"sí"| E{"¿Hay turno abierto?"}
+    E -->|"sí"| F["Ir al salón"]
+    E -->|"no"| G{"¿Rol?"}
+    G -->|"mozo"| H["Mensaje: la caja está cerrada"]
+    G -->|"cajero o dueño"| I["Cargar fondo inicial y turno"]
+    I --> J["Turno abierto"] --> F

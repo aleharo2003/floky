@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph Dev["Desarrollo: PC de cada uno"]
+        DC["Docker Compose<br/>Django local + Django nube<br/>2 PostgreSQL + Vite"]
+        DA["ARCA: doble o homologación"]
+    end
+    subgraph Pru["Pruebas"]
+        PL["Servidor local de prueba<br/>canal pruebas"]
+        PN["Nube de pruebas<br/>Cloud Run + Neon + Pages"]
+        PA["ARCA homologación"]
+    end
+    subgraph Prod["Producción"]
+        RL["Servidor del local<br/>canal estable"]
+        RN["Nube de producción<br/>Cloud Run + Neon + Pages"]
+        RA["ARCA producción"]
+    end
+    GH["GitHub Actions"]
+    DC -->|"pull request"| GH
+    GH -->|"merge a main"| PL
+    GH -->|"merge a main"| PN
+    GH -->|"tag y aprobación"| RL
+    GH -->|"tag y aprobación"| RN
+    PL --> PA
+    RL --> RA

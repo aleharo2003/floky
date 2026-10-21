@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph Local["Local"]
+        PGL[("PostgreSQL local")]
+        BL["pg_dump al cerrar caja y de noche"]
+        Ext["Disco externo o carpeta configurada"]
+        PGL --> BL --> Ext
+    end
+    subgraph Nube["Nube"]
+        PGN[("PostgreSQL nube<br/>réplica y Mis finanzas")]
+        GA["GitHub Actions nocturno<br/>pg_dump cifrado"]
+        R2[("Almacenamiento externo<br/>Cloudflare R2")]
+        PGN --> GA --> R2
+    end
+    PGL -.->|"sincronización"| PGN
+    R2 -->|"restauración mensual en entorno aislado"| Prueba["Base de prueba"]
+    Ext -->|"restauración en PC de prueba"| Prueba2["Servidor local de prueba"]
