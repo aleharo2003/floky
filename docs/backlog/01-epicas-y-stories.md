@@ -1,0 +1,1289 @@
+# Épicas y user stories
+
+**Estado: borrador para revisar.** Convenciones, DoR, DoD y releases en [00-como-leer-el-backlog.md](00-como-leer-el-backlog.md). Preguntas sin resolver en [02-preguntas-abiertas.md](02-preguntas-abiertas.md) (se citan como P-nn). Decisiones en [../adr/](../adr/README.md). Los diagramas que se citan (ARQ, DOM, CLA, DAT, TEC, FUN, EST, OPS, FUT) están en `../diagramas/`.
+
+## Mapa de épicas
+
+| Épica | Objetivo | Versión |
+|---|---|---|
+| E10. Base del punto de venta | Esquema, app de caja y sistema de teclado | MVP |
+| E11. Acceso del personal | PIN en una PC compartida, roles y usuarios | MVP |
+| E12. Carta y salón | Productos con código, aclaraciones, mesas, sectores y mozos | MVP |
+| E13. Salón y comandas | Abrir mesa, cargar por código, enviar a cocina, precuenta | MVP |
+| E14. Cobro y comprobantes | Cobrar, medios de pago, anulaciones y listado | MVP |
+| E15. Caja | Abrir el turno, entradas y salidas, arqueo y cierre | MVP |
+| E16. Facturación electrónica ARCA | CAE, cola de pendientes, notas de crédito, QR, contingencia | MVP |
+| E17. Impresión | Comanda, precuenta y factura en impresoras térmicas ESC/POS | MVP |
+| E18. Panel del dueño | Las cifras del negocio desde cualquier lugar | MVP |
+| E19. Calidad y puesta en marcha | Tests, auditoría y salida a producción en el local | MVP |
+| E20. Acceso del contador | Facturación online, solo lectura | MVP |
+| E21. Mis finanzas | La libreta privada del dueño (los cuadernos) | MVP |
+| E22. Trazabilidad del turno | Historial por mesa y mozo, correcciones, cierre detallado | MVP |
+| **E23. Cimientos y entrega continua** | Repo, entornos, CI/CD y documentación viva | MVP |
+| **E24. Locales, identidad y seguridad en la nube** | Tenants, aislamiento, login online, auditoría y backups | MVP |
+| **E25. Servidor local** | Instalar, vincular, respaldar y actualizar a distancia el servidor de cada local | MVP |
+| **E26. Sincronización local → nube** | Outbox, envío cada X y al cerrar caja, ingesta y controles | MVP |
+| **E27. Rendimiento** | Medir la velocidad del sistema anterior y no empeorarla | MVP |
+| **E28. Migración desde el sistema anterior** | Pasar maestros y cortar sin duplicar comprobantes | MVP |
+| E30. Multilenguaje | Interfaz y carta en otros idiomas | v2 |
+| E31. Menú QR | Carta pública por local | v2 |
+| E32. Stock de bebidas | Control de stock empezando por bebidas | v2 |
+| E33. Pedidos desde celulares | Mozos que cargan en la mesa | v2 |
+
+```mermaid
+graph LR
+  E23[E23 Cimientos] --> E24[E24 Locales e identidad]
+  E23 --> E25[E25 Servidor local]
+  E24 --> E21[E21 Mis finanzas]
+  E25 --> E10[E10 Base POS]
+  E10 --> E11[E11 Personal]
+  E10 --> E12[E12 Carta y salón]
+  E11 --> E13[E13 Comandas]
+  E12 --> E13
+  E13 --> E14[E14 Cobro]
+  E15[E15 Caja] --> E14
+  E14 --> E16[E16 ARCA]
+  E13 --> E17[E17 Impresión]
+  E16 --> E17
+  E14 --> E22[E22 Trazabilidad]
+  E14 --> E26[E26 Sync]
+  E24 --> E26
+  E26 --> E18[E18 Panel]
+  E26 --> E20[E20 Contador]
+  E21 -.-> E18
+  E27[E27 Rendimiento] -.-> E13
+  E27 -.-> E14
+  E26 --> E28[E28 Migración]
+  E28 --> E19[E19 Puesta en marcha]
+  E12 --> E31[E31 Menú QR v2]
+  E30[E30 Multilenguaje v2] -.-> E31
+  E12 --> E32[E32 Stock v2]
+  E25 --> E33[E33 Celulares v2]
+```
+
+---
+
+## E10. Base del punto de venta
+
+Todo lo que las pantallas necesitan antes de la primera función: el esquema, la app de caja y el sistema de teclado. Se construye sobre el proyecto Django de E23.
+
+### HU-100. Esquema y migraciones del punto de venta
+**Prioridad:** Must · **Etiquetas:** `backend`, `db`, `pos` · **Diagramas:** DAT-01, DAT-02
+
+Como desarrollador, quiero las tablas del punto de venta creadas con migraciones versionadas, para que el esquema sea trazable y repetible.
+
+- Dado una base vacía, cuando corro las migraciones de Django, entonces existen locales, terminales, personal, carta, mesas, sesiones de mesa, comandas, ventas, pagos, turnos de caja, comprobantes fiscales, colas de impresión y fiscal, y el outbox, con sus restricciones e índices.
+- Dado cualquier tabla de negocio, cuando se crea, entonces tiene `tenant_id` y su identificador es UUID v7 generado en el local.
+- Dado una columna de importe, cuando se crea, entonces es `numeric(14,2)` (`DecimalField`), nunca punto flotante.
+- Dado el modo nube, cuando corren las migraciones, entonces se crean las mismas tablas replicadas, sin colas de impresión ni fiscal.
+
+### HU-101. App de caja y sistema de diseño desde el prototipo
+**Prioridad:** Must · **Etiquetas:** `frontend`, `pos`
+
+Como desarrollador, quiero llevar las pantallas, tokens y componentes del prototipo a la app real, para arrancar desde lo que el cliente ya aprobó.
+
+- Dado la app React, cuando se agrega el área de caja, entonces tiene sus rutas, la barra superior con pestañas por rol y los tokens de diseño del prototipo.
+- Dado una pantalla de 1280 a 1920 px, cuando se muestra, entonces coincide con el prototipo en 1366x768 y 1920x1080.
+- Dado un celular de 390 px, cuando se muestra cualquier pantalla, entonces nada se desborda hacia el costado, se ocultan las etiquetas de teclas y las tablas pasan a tarjetas apiladas.
+- Dado el build, cuando se publica, entonces el área de caja la sirve el servidor local y el portal (panel, contador, Mis finanzas) se publica en la nube.
+
+### HU-102. Sistema central de atajos de teclado
+**Prioridad:** Must · **Etiquetas:** `frontend`, `pos`, `teclado`
+
+Como integrante del personal, quiero hacer todo con las teclas que ya conozco del sistema anterior, para trabajar tan rápido como hoy.
+
+- Dado cualquier pantalla, cuando presiono F1, entonces veo todos los atajos y cuáles funcionan ahí.
+- Dado el único archivo de configuración, cuando se cambia una tecla, entonces cambian juntos las etiquetas de los botones, la ayuda y el listener.
+- Dado F5 u otra tecla reservada del navegador, cuando la presiono en medio de una comanda, entonces la página no se recarga.
+
+### HU-103. Terminales del local
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos` · **Diagramas:** ARQ-02
+
+Como dueño, quiero registrar cada PC (y a futuro cada celular) que usa la caja, para saber qué equipos pueden operar.
+
+- Dado un equipo nuevo en la red del local, cuando el dueño lo registra en el servidor local, entonces recibe un token de terminal atado a ese local.
+- Dado una terminal, cuando el dueño la revoca, entonces ya no puede iniciar sesiones con PIN.
+- Dado el registro de terminales, cuando lo consulto, entonces veo nombre, último uso y estado.
+
+### HU-104. Implementación real de los contratos de servicio
+**Prioridad:** Must · **Etiquetas:** `frontend`, `api`, `pos` · **Diagramas:** ARQ-03
+
+Como desarrollador, quiero reemplazar los datos simulados del prototipo por un cliente de la API, para que las pantallas no cambien.
+
+- Dado los contratos de la capa de servicios del frontend, cuando se elige la implementación real, entonces ninguna pantalla cambia sus imports.
+- Dado la caja, cuando llama a la API, entonces habla con el servidor local; dado el portal, habla con la nube.
+- Dado una solicitud lenta o fallida, cuando ocurre, entonces la pantalla muestra "cargando" y un error claro con reintento.
+- Dado una acción de dinero, cuando se envía, entonces lleva una clave de idempotencia.
+
+---
+
+## E11. Acceso del personal
+
+Varias personas comparten una PC. Cada una se identifica con su PIN contra el servidor local, haya o no internet.
+
+### HU-110. Ingreso con PIN en una terminal registrada
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `auth`, `pos` · **Diagramas:** FUN-01
+
+Como integrante del personal, quiero elegir mi nombre y escribir mi PIN, para empezar a trabajar en segundos y que mis acciones lleven mi nombre.
+
+- Dado una terminal registrada y un PIN válido, cuando lo escribo, entonces obtengo una sesión con mi rol y llego a mi primera pantalla (apertura de caja o salón).
+- Dado que no hay internet, cuando ingreso el PIN, entonces entro igual: el servidor local valida sin consultar la nube.
+- Dado un PIN incorrecto, cuando lo intento, entonces se rechaza y queda auditado.
+- Dado cinco PIN incorrectos seguidos, cuando vuelvo a intentar, entonces el usuario queda bloqueado unos minutos.
+- Dado el teclado, cuando uso flechas y dígitos, entonces puedo entrar sin el mouse.
+
+### HU-111. Roles dueño, cajero y mozo
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `auth`, `pos`
+
+Como sistema, quiero los tres roles del local aplicados en cada ruta, para que cada persona haga solo lo suyo.
+
+- Dado el rol mozo, cuando llama a cobrar, anular, descontar o caja, entonces se rechaza.
+- Dado el rol cajero, cuando llama a panel, carta o usuarios, entonces se rechaza.
+- Dado el rol mozo, cuando carga la web, entonces solo ve Salón y Mi turno.
+
+### HU-112. Administración del personal con PIN
+**Prioridad:** Must · **Etiquetas:** `frontend`, `backend`, `auth`, `pos`
+
+Como dueño, quiero crear, desactivar y editar al personal y blanquear su PIN, para controlar quién usa el sistema.
+
+- Dado una persona nueva, cuando la creo con nombre, rol y PIN, entonces aparece en la pantalla de ingreso.
+- Dado alguien que se fue, cuando lo desactivo, entonces no puede entrar y su historial queda.
+- Dado un PIN olvidado, cuando lo blanqueo, entonces el anterior deja de funcionar y el cambio queda auditado.
+- Dado el personal, cuando cambia, entonces viaja a la nube por la sincronización para que los reportes muestren nombres (sin el hash del PIN).
+
+### HU-113. Bloqueo por inactividad y cambio rápido de usuario
+**Prioridad:** Should · **Etiquetas:** `frontend`, `auth`, `pos`
+
+Como dueño, quiero que la PC se bloquee cuando nadie la usa, para que nadie trabaje con el nombre de otro.
+
+- Dado ninguna actividad durante el tiempo configurado, cuando pasa, entonces la pantalla se bloquea y pide PIN.
+- Dado una pantalla bloqueada, cuando otra persona escribe su PIN, entonces la sesión pasa a esa persona.
+
+---
+
+## E12. Carta y salón
+
+Lo que el local configura una vez y cambia a veces. Se edita en el servidor local, solo el dueño, y sube a la nube.
+
+### HU-120. Categorías y productos con código
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `carta` · **Diagramas:** CLA-01, DOM-03
+
+Como dueño, quiero administrar los productos con su código numérico, precio, categoría y alícuota de IVA, para mantener mi carta.
+
+- Dado un producto, cuando lo guardo, entonces el código es único en el local.
+- Dado un producto con ventas, cuando lo desactivo, entonces sale de la carta y sigue en las ventas pasadas.
+- Dado un cambio de precio, cuando lo guardo, entonces las mesas abiertas conservan el precio con el que se cargaron.
+- Dado un cambio en la carta, cuando se guarda, entonces deja su fila en el outbox para subir a la nube.
+
+### HU-121. Aclaraciones (modificadores)
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`, `carta`
+
+Como dueño, quiero definir las aclaraciones que acepta cada categoría o producto, para que la cocina las reciba de forma pareja.
+
+- Dado una categoría con aclaraciones, cuando se carga un producto de ella, entonces se abre el selector numerado.
+- Dado un producto sin aclaraciones, cuando se carga, entonces entra directo a la comanda.
+
+### HU-122. Sectores, mesas y mozos
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como dueño, quiero definir sectores, números de mesa, capacidad y mozos, para que el mapa del salón coincida con el local.
+
+- Dado un número de mesa, cuando la creo, entonces es único en el local.
+- Dado una mesa con sesión abierta, cuando intento eliminarla, entonces no se permite.
+
+> Nota: confirmar con cada local si trabaja con mesas numeradas y sectores, o solo con mozos (P-05).
+
+### HU-123. Importar la carta del sistema anterior
+**Prioridad:** Should · **Etiquetas:** `datos`, `pos`, `carta`
+
+Como dueño, quiero que me carguen los productos y códigos del sistema anterior, para que el personal conserve los códigos que sabe de memoria.
+
+- Dado las tablas de artículos y categorías del sistema anterior (por ejemplo, archivos TopSpeed), cuando corre la importación, entonces se crean los productos activos con el mismo código, nombre, categoría y precio actual.
+- Dado que la importación corre dos veces, cuando termina, entonces no se duplica ningún producto.
+
+### HU-124. Historial de precios
+**Prioridad:** Could · **Etiquetas:** `backend`, `pos`, `carta`
+
+Como dueño, quiero ver cuándo cambió cada precio y aplicar un porcentaje a una categoría entera, para actualizar precios en minutos.
+
+- Dado una categoría, cuando aplico un porcentaje, entonces cambia cada producto y los precios anteriores quedan en el historial.
+
+---
+
+## E13. Salón y comandas
+
+El corazón del servicio: desde que el cliente se sienta hasta la precuenta. Todo contra el servidor local.
+
+### HU-130. Mapa del salón con estado al día
+**Prioridad:** Must · **Etiquetas:** `frontend`, `backend`, `pos` · **Diagramas:** EST-02
+
+Como mozo, quiero ver cada mesa con su estado, para saber adónde ir.
+
+- Dado el salón, cuando carga, entonces cada mesa muestra libre, ocupada o con precuenta, comensales, mozo, tiempo y total.
+- Dado que otra terminal cambia una mesa, cuando pasan hasta 3 segundos, entonces mi mapa lo muestra.
+- Dado el teclado, cuando uso flechas o escribo el número de mesa y Enter, entonces abro esa mesa.
+
+### HU-131. Abrir una mesa
+**Prioridad:** Must · **Etiquetas:** `frontend`, `backend`, `pos` · **Diagramas:** FUN-02
+
+Como mozo, quiero abrir una mesa con comensales y mozo, para empezar a cargar.
+
+- Dado una mesa libre y una caja abierta, cuando la abro, entonces queda ocupada con comensales, mozo y hora.
+- Dado la caja cerrada, cuando intento abrir una mesa, entonces no se permite y me dice por qué.
+- Dado el rol mozo, cuando abro una mesa, entonces queda asignada a mí.
+
+### HU-132. Cargar la comanda por código
+**Prioridad:** Must · **Etiquetas:** `frontend`, `pos`, `teclado` · **Diagramas:** FUN-02
+
+Como mozo, quiero escribir códigos y que entren sin apretar Enter, para cargar tan rápido como en el sistema anterior.
+
+- Dado un código que no puede ser comienzo de otro, cuando termino de escribirlo, entonces se agrega al instante.
+- Dado un código que también es comienzo de uno más largo, cuando dejo de tipear 700 ms o aprieto Enter, entonces se agrega.
+- Dado un código inexistente, cuando lo escribo, entonces veo un aviso, suena un sonido corto y el campo se limpia.
+- Dado tipeo rápido, cuando escribo dos códigos seguidos, entonces ningún dígito del segundo se pega al primero.
+
+### HU-133. Cantidad, búsqueda por nombre y grilla de lo más vendido
+**Prioridad:** Must · **Etiquetas:** `frontend`, `pos`, `teclado`
+
+Como mozo, quiero prefijos de cantidad, búsqueda por nombre y una grilla de lo que más se vende, para cargar cualquier cosa aunque no sepa el código.
+
+- Dado `3*24`, cuando lo escribo, entonces se agregan tres unidades del producto 24.
+- Dado letras, cuando las escribo, entonces veo sugerencias con código y precio, y elijo con flechas y Enter.
+- Dado una categoría, cuando la elijo, entonces la grilla muestra sus 16 más vendidos con el código en cada botón.
+
+### HU-134. Aclaraciones y notas en una línea
+**Prioridad:** Must · **Etiquetas:** `frontend`, `pos`
+
+Como mozo, quiero marcar aclaraciones y escribir una nota en una línea, para que la cocina la prepare bien.
+
+- Dado un producto con aclaraciones, cuando se carga, entonces se abre un selector numerado: los dígitos marcan, Enter confirma y Esc lo carga sin aclaraciones.
+- Dado una línea cargada, cuando aprieto F7, entonces cambio sus aclaraciones y escribo una nota libre.
+
+### HU-135. Enviar la comanda a cocina
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos` · **Diagramas:** FUN-02
+
+Como mozo, quiero enviar lo que cargué, para que la cocina empiece y se actualice el total de la mesa.
+
+- Dado líneas sin enviar, cuando envío, entonces se guarda una comanda con el número siguiente, cada línea conserva el precio de ese momento, y en la misma transacción se crean el trabajo de impresión de cocina, el evento de trazabilidad y la fila del outbox.
+- Dado que aprieto Enter dos veces o la red reintenta, cuando llega la misma solicitud, entonces existe una sola comanda.
+- Dado líneas sin enviar, cuando intento salir de la mesa, entonces me pide confirmar.
+
+### HU-136. Precuenta con descuento
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como mozo, quiero imprimir la precuenta, para que el cliente vea el total antes de pagar.
+
+- Dado una mesa con líneas enviadas, cuando pido la precuenta, entonces veo el detalle, los totales y el ticket como se imprime, y la mesa pasa a "con precuenta".
+- Dado un nivel de descuento, cuando la caja lo aplica, entonces el servidor recalcula el total y el descuento queda auditado.
+- Dado líneas sin enviar, cuando pido la precuenta, entonces me pide enviarlas primero.
+
+### HU-137. Pasar, unir y reasignar mesas
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como cajero, quiero pasar una mesa, unir dos o cambiar el mozo, para que el sistema siga lo que pasa en el salón.
+
+- Dado una mesa ocupada y una libre, cuando la paso, entonces toda la cuenta cambia de mesa.
+- Dado dos mesas ocupadas, cuando las uno, entonces una sola cuenta tiene las líneas de las dos.
+
+> No está en el prototipo, pero es lo primero que pide el personal que viene del sistema anterior.
+
+### HU-138. Anular una línea enviada
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `seguridad`
+
+Como cajero, quiero anular algo ya enviado, con motivo, para corregir errores sin esconderlos.
+
+- Dado una línea enviada, cuando el cajero la anula con motivo, entonces la línea queda marcada como anulada, se recalcula el total y se imprime un ticket de anulación en cocina.
+- Dado el rol mozo, cuando intenta anular una línea enviada, entonces se rechaza.
+- Dado una anulación, cuando se hace, entonces la auditoría guarda quién, cuándo, por qué, el antes y el después.
+
+### HU-139. Dos terminales en la misma mesa
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como mozo, quiero estar tranquilo si otro trabaja en mi mesa, para que no se pierda nada ni se cobre dos veces.
+
+- Dado dos terminales con la misma mesa, cuando las dos envían líneas, entonces se guardan las dos comandas.
+- Dado una mesa que se cobró en otra terminal, cuando intento enviar o cobrar, entonces me avisa y me lleva al salón.
+
+---
+
+## E14. Cobro y comprobantes
+
+Cobrar, elegir medios de pago, anular y encontrar ventas. Todo en el servidor local, sin esperar a internet.
+
+### HU-140. Cobrar una mesa
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `dinero` · **Diagramas:** FUN-03, TEC-01
+
+Como cajero, quiero cobrar con uno o dos medios de pago, para cerrar la mesa y registrar la plata.
+
+- Dado un total, cuando cargo uno o dos pagos, entonces la pantalla muestra lo que falta, lo cubierto o el vuelto.
+- Dado pagos que no suman, cuando confirmo, entonces el servidor también lo rechaza.
+- Dado un cobro válido, cuando se confirma, entonces venta, pagos, total del turno, auditoría, trabajo fiscal y fila del outbox se escriben en una sola transacción en la base local, y la mesa queda libre.
+- Dado una doble confirmación, cuando llega, entonces existe una sola venta.
+- Dado que no hay internet, cuando cobro, entonces el cobro funciona igual y en el mismo tiempo.
+
+### HU-141. Medios de pago
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como dueño, quiero definir los medios de pago que acepto, para que la pantalla de cobro y los reportes usen mi lista.
+
+- Dado un medio de pago, cuando lo desactivo, entonces sale de la pantalla de cobro y sigue en las ventas pasadas.
+
+### HU-142. Anular una venta cobrada
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `seguridad`, `dinero` · **Diagramas:** FUN-05
+
+Como cajero, quiero anular una venta cobrada por error, para que la caja y los reportes estén bien.
+
+- Dado una venta del turno actual sin factura, cuando la anulo con motivo, entonces queda anulada, sus pagos salen de los totales del turno y queda auditado.
+- Dado una venta con factura autorizada, cuando la anulo, entonces se pide una nota de crédito (HU-165) y la venta se anula recién cuando se autoriza.
+- Dado una venta de un turno cerrado, cuando el cajero intenta anularla, entonces solo puede el dueño, y genera un ajuste en el turno actual.
+
+### HU-143. Listado de comprobantes
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como cajero, quiero la lista de ventas con su estado fiscal, para encontrar una y facturar lo pendiente.
+
+- Dado el listado, cuando carga, entonces está paginado en el servidor y muestra fecha, número, mesa, pago, total y estado.
+- Dado el filtro "pendiente de factura", cuando lo aplico, entonces se ven solo esas, con su cantidad.
+- Dado el teclado, cuando uso flechas y Enter, entonces abro la venta elegida.
+
+### HU-144. Venta de mostrador sin mesa
+**Prioridad:** Could · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como cajero, quiero vender en el mostrador o para llevar sin abrir una mesa, para que una venta rápida sea un paso.
+
+- Dado la venta de mostrador, cuando cargo productos y cobro, entonces se crea una venta sin mesa.
+
+---
+
+## E15. Caja
+
+La caja de cada turno. No es Mis finanzas.
+
+### HU-150. Abrir el turno de caja
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `caja` · **Diagramas:** FUN-01, EST-03
+
+Como cajero, quiero abrir el turno con el fondo inicial, para que arranque el día.
+
+- Dado que no hay turno abierto, cuando entra el cajero o el dueño, entonces va a la pantalla de apertura.
+- Dado fondo inicial, turno y cajero, cuando confirmo, entonces el turno queda abierto y se pueden abrir mesas.
+- Dado un turno abierto, cuando alguien intenta abrir otro en el mismo local, entonces no se permite.
+- Dado un mozo y ningún turno abierto, cuando entra, entonces un mensaje le dice que la caja está cerrada.
+
+### HU-151. Entradas y salidas de caja
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`, `caja`
+
+Como cajero, quiero registrar plata que entra o sale del cajón fuera de una venta, para que el arqueo cierre.
+
+- Dado un retiro o un aporte con motivo, cuando lo guardo, entonces cambia el efectivo esperado del turno y queda auditado.
+
+### HU-152. Arqueo y cierre del turno
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `caja`, `dinero` · **Diagramas:** FUN-04, EST-03
+
+Como cajero, quiero contar los billetes y cerrar, para terminar el turno con una diferencia clara.
+
+- Dado la pantalla de cierre, cuando carga, entonces veo ventas por medio de pago, efectivo esperado y mesas abiertas.
+- Dado un conteo por denominación, cuando lo cargo, entonces veo si falta, sobra o está justo.
+- Dado la confirmación, cuando cierro, entonces el servidor recalcula el efectivo esperado, guarda conteo y diferencia, y el turno queda de solo lectura.
+- Dado mesas abiertas, cuando intento cerrar, entonces me avisa y solo el dueño puede forzarlo.
+- Dado la tecla Enter, cuando la aprieto en esta pantalla, entonces el turno no se cierra (F10 dos veces, a propósito).
+- Dado el cierre confirmado, cuando termina, entonces se dispara la sincronización con la nube (HU-262) sin que el cajero espere.
+
+### HU-153. Reporte e historial de turnos
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `caja`
+
+Como dueño, quiero el reporte de cierre de cada turno, para revisarlo después.
+
+- Dado un turno cerrado, cuando lo abro, entonces veo totales por medio de pago, anulaciones, descuentos, movimientos de caja, conteo y diferencia, y lo puedo imprimir.
+- Dado el historial, cuando filtro por fecha, entonces veo los turnos del rango, paginados.
+- Dado el panel de la nube, cuando el turno ya se sincronizó, entonces el dueño ve el mismo reporte desde afuera.
+
+### HU-154. Reglas del turno en todo el sistema
+**Prioridad:** Must · **Etiquetas:** `backend`, `pos`, `caja`
+
+Como sistema, quiero que toda acción de dinero esté atada a un turno abierto, para que ninguna venta quede afuera de un cierre.
+
+- Dado el turno cerrado, cuando se envía una comanda o un cobro, entonces se rechaza con un código claro.
+- Dado una venta, cuando se guarda, entonces lleva el id del turno.
+
+---
+## E16. Facturación electrónica ARCA
+
+Facturación real desde el servidor local (ADR-0006). En el prototipo está simulada. Lo habitual en los locales es Factura B a consumidor final por WSFEv1.
+
+### HU-160. Spike: ambiente de homologación de ARCA
+**Prioridad:** Must · **Etiquetas:** `spike`, `fiscal`
+
+Como equipo, queremos una llamada funcionando contra ARCA en homologación, para estimar el resto de la épica con hechos.
+
+- Dado un certificado de prueba y un punto de venta, cuando termina el spike, entonces se autorizó una factura en homologación y los pasos quedaron escritos.
+- Dado los datos del cliente (quién renueva el certificado, qué punto de venta, qué tipos de comprobante), cuando termina el spike, entonces cada pregunta está respondida o planteada al cliente.
+
+> Investigación con duración incierta. Depende del cliente y del contador para el certificado y el punto de venta.
+
+### HU-161. Configuración fiscal y guarda del certificado
+**Prioridad:** Must · **Etiquetas:** `backend`, `fiscal`, `seguridad`
+
+Como dueño, quiero cargar mis datos fiscales una vez y de forma segura, para que las facturas salgan con el emisor correcto.
+
+- Dado CUIT, punto de venta, alícuotas y certificado, cuando se guardan en el servidor local, entonces el certificado y la clave quedan cifrados con DPAPI, accesibles solo para la cuenta del servicio, y la API nunca los devuelve.
+- Dado el vencimiento del certificado, cuando faltan 30 días, entonces se avisa en la caja y se manda una alerta desde la nube (vía el reporte de salud, HU-255).
+- Dado el ambiente en homologación, cuando se factura, entonces ninguna solicitud llega a producción.
+- Dado la sincronización, cuando corre, entonces el certificado y la clave nunca se suben.
+
+### HU-162. Emitir Factura B con CAE
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal`, `dinero` · **Diagramas:** TEC-02, EST-01
+
+Como cajero, quiero que la factura salga apenas cobro, para que el cliente se vaya con un comprobante válido.
+
+- Dado una venta cobrada, cuando se pide la factura, entonces el worker fiscal local obtiene el ticket de acceso (WSAA, reutilizado mientras sea válido), pide el CAE (WSFEv1) y guarda número, CAE y vencimiento.
+- Dado una factura autorizada, cuando miro la venta, entonces figura facturada y el comprobante se puede imprimir.
+- Dado el neto, IVA y total enviados a ARCA, cuando se comparan con la venta, entonces coinciden al centavo.
+- Dado la pantalla, cuando ARCA está respondiendo, entonces veo "conectando" y puedo seguir con otras mesas.
+
+### HU-163. Condición frente al IVA del receptor (RG 5616)
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal`
+
+Como dueño, quiero que toda factura lleve la condición frente al IVA del receptor, para que ARCA siga aceptando mis facturas.
+
+- Dado cualquier factura, cuando se envía, entonces incluye la condición frente al IVA del receptor, con "consumidor final" por defecto, usando los códigos de `FEParamGetCondicionIvaReceptor`.
+- Dado una factura sin ella, cuando se arma, entonces no se envía.
+
+### HU-164. Cola de pendientes, reintento y conciliación
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal` · **Diagramas:** TEC-03, EST-01
+
+Como cajero, quiero que una factura rechazada o sin respuesta quede pendiente y se reintente con seguridad, para no perder nunca una venta ni duplicar una factura.
+
+- Dado que ARCA rechaza, cuando responde, entonces la venta queda pendiente con el motivo y puedo reintentar o dejarla para después.
+- Dado un timeout, cuando el worker reintenta, entonces primero pregunta a ARCA si ese número quedó autorizado y usa esa respuesta.
+- Dado facturas pendientes, cuando vuelve ARCA o internet, entonces se reintentan en orden sin que nadie lo haga.
+- Dado que no hay internet, cuando cobro, entonces entrego un ticket provisorio "no válido como factura" y la venta queda pendiente de CAE.
+- Dado facturas pendientes al cierre, cuando se arma el reporte del turno, entonces muestra cuántas y por cuánto.
+
+### HU-165. Nota de crédito
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal`, `dinero` · **Diagramas:** FUN-05
+
+Como cajero, quiero una nota de crédito para una venta facturada que se anuló, para que el registro fiscal esté bien.
+
+- Dado una factura autorizada, cuando se anula la venta, entonces se pide a ARCA una nota de crédito por el mismo importe, asociada a ella.
+- Dado que ARCA rechaza la nota de crédito, cuando responde, entonces la venta sigue cobrada y la anulación queda pendiente con el motivo.
+
+### HU-166. Comprobante con QR
+**Prioridad:** Must · **Etiquetas:** `frontend`, `fiscal`, `impresion`
+
+Como cliente, quiero una factura legible con el QR de ARCA, para poder verificarla.
+
+- Dado una factura autorizada, cuando se muestra o imprime, entonces tiene emisor, receptor, detalle, CAE, vencimiento y el QR.
+- Dado el QR, cuando se arma, entonces es la URL `https://www.arca.gob.ar/fe/qr/?p=` con el JSON versión 1 en Base64 (`ver`, `fecha`, `cuit`, `ptoVta`, `tipoCmp`, `nroCmp`, `importe`, `moneda`, `ctz`, `tipoDocRec`, `nroDocRec`, `tipoCodAut`, `codAut`), con `tipoCodAut` "E" para CAE o "A" para CAEA.
+
+### HU-167. Factura A a un cliente con CUIT
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `fiscal`
+
+Como cajero, quiero facturar a una empresa, para que los clientes que necesitan Factura A la reciban.
+
+- Dado un CUIT válido, cuando lo cargo, entonces el tipo de factura y el desglose de IVA siguen la condición del receptor.
+- Dado un CUIT inválido, cuando lo cargo, entonces se rechaza antes de llamar a ARCA.
+
+> No está en el prototipo (solo Factura B). Confirmar con el contador de cada local si emite A, B o C (P-09).
+
+### HU-168. Spike: contingencia con CAEA (RG 5782)
+**Prioridad:** Should · **Etiquetas:** `spike`, `fiscal` · **Diagramas:** TEC-03
+
+Como equipo, queremos saber qué costaría emitir con CAEA durante un corte, para decidir con el contador entre CAEA y ticket provisorio.
+
+- Dado la RG 5782/2025, cuando termina el spike, entonces está escrito qué hace falta: punto de venta específico, solicitud quincenal (hasta 5 días antes de cada período), informe de lo emitido hasta el octavo día posterior y cómo cambia el QR.
+- Dado homologación, cuando termina el spike, entonces se pidió un CAEA de prueba y se informó un comprobante.
+- Dado el resultado, cuando se presenta, entonces hay una estimación para implementarlo y una recomendación.
+
+---
+
+## E17. Impresión
+
+La impresora de referencia es una **Hasar P-250N**: térmica de 80 mm, ESC/POS, serie, USB y Ethernet, con salida para cajón (ADR-0007). El servidor local imprime directo.
+
+### HU-170. Spike: imprimir en la Hasar P-250N
+**Prioridad:** Must · **Etiquetas:** `spike`, `impresion`
+
+Como equipo, queremos un ticket impreso en la impresora real desde el servidor local, para probar el camino antes de construirlo.
+
+- Dado la P-250N conectada por Ethernet o USB, cuando termina el spike, entonces sale un ticket de prueba con acentos, ñ, negrita, tamaño doble, corte de papel y un QR.
+- Dado el resultado, cuando se documenta, entonces queda escrito qué interfaz se usa, qué página de códigos y cómo se abre el cajón.
+
+### HU-171. Módulo de impresión del servidor local
+**Prioridad:** Must · **Etiquetas:** `local`, `impresion` · **Diagramas:** TEC-01
+
+Como local, quiero que los tickets salgan sin que nadie toque un diálogo, para que la cocina reciba el pedido al instante.
+
+- Dado un trabajo de impresión en la cola local, cuando el módulo lo toma, entonces lo imprime y lo marca impreso o fallido.
+- Dado la impresora apagada o sin papel, cuando falla un trabajo, entonces la pantalla lo muestra y se puede reimprimir, y la venta no se frena.
+- Dado un cobro en efectivo y un cajón conectado, cuando se confirma, entonces se abre el cajón.
+
+### HU-172. Plantillas de tickets
+**Prioridad:** Must · **Etiquetas:** `impresion`, `frontend`
+
+Como local, quiero la comanda, la precuenta y la factura con el formato correcto, para que se lean bien en papel térmico.
+
+- Dado una comanda, cuando se imprime en cocina, entonces muestra número, hora, mesa, mozo, cantidades, aclaraciones y notas, en letra grande.
+- Dado una precuenta, cuando se imprime, entonces dice que no es factura.
+- Dado una venta pendiente de CAE, cuando se imprime el ticket provisorio, entonces dice "no válido como factura" y cómo obtener la factura.
+- Dado acentos y la ñ, cuando se imprimen, entonces se leen bien.
+
+### HU-173. Ruteo de impresoras y reimpresión
+**Prioridad:** Should · **Etiquetas:** `impresion`, `backend`
+
+Como dueño, quiero que las bebidas salgan en la barra y la comida en la cocina, para que cada puesto reciba lo suyo.
+
+- Dado una categoría asignada a una impresora, cuando se envía una comanda, entonces cada línea sale donde corresponde.
+- Dado un ticket impreso, cuando lo reimprimo, entonces dice "copia" y la reimpresión queda auditada.
+
+---
+
+## E18. Panel del dueño
+
+Vive en la nube y lee la réplica que mandan los locales (ADR-0005). Muestra siempre de qué hora son los datos.
+
+### HU-180. API de reportes
+**Prioridad:** Must · **Etiquetas:** `backend`, `api`, `reportes`
+
+Como panel, quiero cifras agregadas por período, para que la pantalla cargue rápido.
+
+- Dado hoy, esta semana o este mes, cuando consulto, entonces obtengo ventas, comandas, ticket promedio, por medio de pago, productos más vendidos y por mozo.
+- Dado ventas anuladas, cuando se calculan totales, entonces se excluyen y se informan aparte.
+- Dado un rol distinto de dueño, cuando llama a estos endpoints, entonces se rechaza.
+- Dado cualquier respuesta, cuando se arma, entonces incluye la hora del último lote recibido de cada local.
+
+### HU-181. Pantalla del panel
+**Prioridad:** Must · **Etiquetas:** `frontend`, `reportes`
+
+Como dueño, quiero una pantalla con las cifras del negocio, para saber cómo va desde cualquier lugar.
+
+- Dado que soy dueño, cuando carga el panel, entonces veo ventas, gastos, resultado, comandas, ticket promedio, mesas abiertas, evolución, ventas por medio de pago, más vendidos y ventas por mozo.
+- Dado los selectores de período y métrica, cuando los cambio, entonces todos los paneles los siguen.
+- Dado un celular o una notebook, cuando lo abro fuera del local con mi usuario, entonces funciona.
+- Dado los datos, cuando los miro, entonces veo "datos al HH:MM" y un aviso si están más atrasados que el umbral.
+
+### HU-182. Resultado con los gastos del negocio
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `reportes`
+
+Como dueño, quiero ventas menos gastos, para ver el resultado y no solo lo vendido.
+
+- Dado gastos cargados en Mis finanzas en categorías marcadas "del negocio", cuando carga el panel, entonces se restan de las ventas del período.
+- Dado un gasto personal, cuando se calcula el resultado, entonces no se incluye.
+
+### HU-183. Indicadores al día
+**Prioridad:** Should · **Etiquetas:** `frontend`, `reportes`
+
+Como dueño, quiero ver mesas abiertas y facturas pendientes al día, para actuar.
+
+- Dado que estoy en la red del local, cuando abro el panel del servidor local, entonces mesas abiertas y facturas pendientes se refrescan cada pocos segundos.
+- Dado que estoy afuera, cuando abro el panel de la nube, entonces veo esos indicadores a la hora del último lote, con la hora visible.
+- Dado una factura pendiente, cuando la toco, entonces voy a la venta.
+
+### HU-184. Reporte de anulaciones y descuentos
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `reportes`, `seguridad`
+
+Como dueño, quiero ver anulaciones y descuentos por persona y por día, para que los controles del sistema se miren de verdad.
+
+- Dado un período, cuando abro el reporte, entonces veo cantidad e importe de líneas anuladas, ventas anuladas y descuentos, por persona, con el motivo de cada uno.
+
+---
+
+## E19. Calidad y puesta en marcha
+
+Tests de lo que no puede fallar, auditoría del punto de venta y la salida a producción en un local.
+
+### HU-190. Tests de la lógica de dinero
+**Prioridad:** Must · **Etiquetas:** `backend`, `tests`, `dinero`
+
+Como equipo, queremos tests automáticos de todo lo que calcula plata, para que no pueda fallar en silencio.
+
+- Dado totales, descuentos, redondeo, desglose de IVA, vuelto, efectivo esperado y diferencia del turno, cuando corren los tests, entonces cada regla tiene casos con sus bordes (cero, dos pagos, anulaciones).
+- Dado un pull request, cuando falla un test de dinero, entonces el merge se bloquea.
+
+### HU-191. Tests end to end del flujo completo
+**Prioridad:** Must · **Etiquetas:** `tests`, `devops`
+
+Como equipo, queremos el flujo completo probado solo con teclado y con mouse, para que una versión nueva no rompa el servicio.
+
+- Dado un entorno de prueba, cuando corre la suite, entonces hace ingreso, apertura, mesa, comanda por código, precuenta, cobro, factura y cierre, solo con teclado y de nuevo con mouse.
+- Dado cada rol, cuando corre la suite de permisos, entonces el contador no llega a nada fuera de facturación y Mis finanzas se abre solo para el dueño, por menú, por URL escrita a mano y por llamada directa a la API.
+- Dado el servidor local sin red hacia afuera, cuando corre la suite, entonces se vende, se cierra la caja y, al volver la red, la nube recibe todo una sola vez.
+
+### HU-192. Eventos de auditoría del punto de venta
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `auditoria`
+
+Como dueño, quiero las acciones sensibles del local registradas, para saber quién hizo qué.
+
+- Dado un ingreso con PIN, una anulación, un descuento, un cobro, una apertura o cierre de turno, una factura o una nota de crédito, cuando ocurre, entonces se escribe una entrada de auditoría en la misma transacción.
+- Dado una acción aprobada con el PIN del dueño, cuando se registra, entonces quedan las dos personas.
+- Dado la auditoría del local, cuando se sincroniza, entonces llega a la nube tal cual (solo agregar) y el dueño la consulta desde afuera.
+
+### HU-194. Puesta en marcha en el local
+**Prioridad:** Must · **Etiquetas:** `ops`, `docs` · **Diagramas:** OPS-01
+
+Como dueño, quiero que el cambio desde el sistema anterior se haga con cuidado, para que el local no pare.
+
+- Dado la carta, mesas, usuarios e impresora reales, cuando se instala el servidor local, entonces se hace un servicio de prueba completo antes del primero real.
+- Dado el personal, cuando se capacita, entonces cada rol tiene una guía de una página con sus teclas.
+- Dado los primeros servicios reales, cuando corren, entonces alguien del equipo está disponible y el sistema anterior queda instalado como respaldo, sin emitir comprobantes.
+
+### HU-196. Documentación de traspaso
+**Prioridad:** Should · **Etiquetas:** `docs`
+
+Como cliente, quiero el punto de venta cubierto en los manuales de operación, para poder operarlo.
+
+- Dado la entrega, cuando se traspasa, entonces el runbook cubre renovación del certificado, facturas pendientes, problemas de impresora, qué hacer sin internet, cómo ver si la sincronización está al día y cómo restaurar un backup del servidor local.
+
+---
+
+## E20. Acceso del contador
+
+El contador trabaja online con su usuario. No se le exporta ni se le manda nada. Ve **solo facturación**, de solo lectura (ADR-0004).
+
+### HU-200. Rol contador con usuario propio
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `auth`, `contador` · **Diagramas:** FUN-07
+
+Como contador, quiero mi usuario y contraseña, para mirar la facturación desde mi estudio cuando lo necesite.
+
+- Dado mi email y contraseña, cuando ingreso, entonces llego a facturación y es la única sección que tengo.
+- Dado el rol contador, cuando llama a cualquier endpoint fuera de `/accountant`, entonces se rechaza.
+- Dado que el dueño desactiva mi usuario, cuando intento entrar, entonces se rechaza.
+- Dado que tengo membresía en más de un local, cuando ingreso, entonces elijo el local y solo veo ese.
+
+### HU-201. API de lectura de facturación
+**Prioridad:** Must · **Etiquetas:** `backend`, `api`, `contador`, `fiscal`
+
+Como vista del contador, quiero endpoints de lectura con filtro de fechas, para mostrar comprobantes y totales por período.
+
+- Dado un rango de fechas, cuando consulto los comprobantes, entonces obtengo tipo (A, B o C), número, fecha, receptor o "consumidor final", neto, IVA, total y medio de pago, paginado.
+- Dado un rango, cuando consulto el resumen, entonces obtengo totales de neto, IVA y total, por medio de pago y por tipo.
+- Dado cualquier respuesta, cuando la inspecciono, entonces no tiene datos de productos, mesas, mozos ni comensales.
+- Dado este rol, cuando busco un endpoint de escritura, entonces no hay ninguno.
+- Dado la respuesta, cuando se arma, entonces indica hasta qué hora llegan los datos del local.
+
+### HU-202. Pantalla de facturación del contador
+**Prioridad:** Must · **Etiquetas:** `frontend`, `contador`
+
+Como contador, quiero una pantalla con los comprobantes emitidos y los totales, para hacer mi trabajo sin pedirle archivos al local.
+
+- Dado que ingresé, cuando carga la pantalla, entonces veo los comprobantes del mes y los totales del período.
+- Dado el filtro de fechas y los períodos rápidos (hoy, últimos 7 días, este mes, mes anterior), cuando los cambio, entonces la lista y los totales los siguen.
+- Dado que es de solo lectura, cuando busco controles para crear, editar o anular, entonces no hay.
+
+### HU-203. Garantías de solo lectura y alcance
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `tests`, `contador`
+
+Como dueño, quiero pruebas de que el contador ve facturación y nada más, para darle el acceso tranquilo.
+
+- Dado la sesión del contador, cuando escribe a mano cualquier otra ruta, entonces vuelve a facturación.
+- Dado el token del contador, cuando llama directo a cualquier otro endpoint o a cualquier escritura, entonces cada uno responde 403.
+- Dado cada ingreso del contador, cuando ocurre, entonces queda en la auditoría.
+
+---
+
+## E21. Mis finanzas
+
+La libreta privada del dueño: los cuadernos de gastos, ingresos y haber. Vive **solo en la nube**. Solo el rol dueño, con segunda clave. No muestra métricas de ventas.
+
+### HU-210. Modelo de movimientos y categorías
+**Prioridad:** Must · **Etiquetas:** `backend`, `db`, `finanzas` · **Diagramas:** CLA-02, DAT-02
+
+Como desarrollador, quiero las tablas de la libreta del dueño, para representar bien ingresos, egresos y saldo.
+
+- Dado un movimiento, cuando se crea, entonces tiene fecha, tipo (ingreso o egreso), categoría, descripción, importe y medio de pago, y pertenece a un dueño.
+- Dado un movimiento, cuando corresponde a un local, entonces lo indica (`tenant_id` opcional), para el resultado por local y total.
+- Dado movimientos en el tiempo, cuando se consultan, entonces se puede calcular el saldo de cualquier período.
+
+### HU-211. Crear, editar y borrar movimientos
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `finanzas` · **Diagramas:** FUN-06
+
+Como dueño, quiero cargar y corregir mis movimientos, para que la libreta refleje la realidad.
+
+- Dado datos válidos, cuando guardo un movimiento, entonces se guarda y aparece en la lista de su mes.
+- Dado un movimiento existente, cuando lo edito o lo borro, entonces se aplica, con confirmación para el borrado.
+- Dado datos inválidos (importe cero o negativo, sin categoría, sin fecha), cuando guardo, entonces veo un error claro y no se escribe nada.
+- Dado el teclado, cuando cargo un movimiento, entonces lo puedo hacer sin el mouse.
+
+### HU-212. Administrar categorías
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `finanzas`
+
+Como dueño, quiero mis propias categorías de ingresos y egresos, para que el resumen se parezca a cómo pienso mi plata.
+
+- Dado categorías, cuando creo, edito o desactivo una, entonces se refleja en el formulario y en el resumen, y los movimientos pasados conservan la suya.
+- Dado una categoría, cuando la marco "del negocio", entonces sus egresos cuentan para el resultado del panel (HU-182).
+
+### HU-213. Saldo del período y resumen mensual
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `finanzas`, `reportes`
+
+Como dueño, quiero el saldo del período y un resumen mensual por categoría, para ver adónde va mi plata.
+
+- Dado un mes, cuando lo abro, entonces veo total de ingresos, total de egresos y saldo.
+- Dado un mes, cuando miro el resumen, entonces veo el total y la cantidad de movimientos de cada categoría.
+- Dado la pantalla, cuando busco cifras de ventas, entonces no hay.
+
+### HU-214. Acceso solo del dueño y auditoría
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `auditoria`, `finanzas`
+
+Como dueño, quiero que nadie más abra mis finanzas y que cada cambio quede registrado, para que la libreta sea privada y trazable.
+
+- Dado el dueño, cuando mira la barra, entonces Mis finanzas es un candado chico a la derecha, no una pestaña, y al tocarlo pide una clave propia.
+- Dado una sesión de dueño válida sin esa clave, cuando se llama a la API, entonces no sirve ni guarda nada.
+- Dado una clave incorrecta, cuando se prueba, entonces se rechaza y se audita, y cinco seguidas bloquean el área unos minutos.
+- Dado que el dueño sale de la pantalla, cierra sesión o queda inactivo, cuando vuelve, entonces se pide la clave de nuevo.
+- Dado los roles cajero, mozo o contador, cuando miran la barra, entonces el candado no está.
+- Dado cualquiera de esos roles, cuando escribe la URL o llama directo a la API, entonces se lo redirige o recibe 403.
+- Dado un alta, edición o borrado, cuando ocurre, entonces se escribe una entrada de auditoría en la misma transacción con actor, acción, antes y después.
+
+---
+
+## E22. Trazabilidad del turno
+
+Entender por qué no cierra una caja: qué pasó en cada mesa, quién lo hizo y qué pago se registró con el medio equivocado. Un registro de eventos escrito en la misma transacción que cada acción, y tres vistas de lectura (mesa, mozo, turno).
+
+### HU-220. Registro de eventos de mesas, ventas y turno
+**Prioridad:** Must · **Etiquetas:** `backend`, `db`, `auditoria`, `pos` · **Diagramas:** CLA-02
+
+Como dueño, quiero cada paso de una mesa registrado con hora y usuario, para rastrear una diferencia de caja.
+
+- Dado que se abre una mesa, se envía una comanda, se anula una línea, se pide precuenta, se cobra, se factura, ARCA rechaza o se cierra sin comprobante, cuando ocurre, entonces se agrega un evento en la misma transacción, con hora, usuario, rol, local, turno, sesión de mesa y venta.
+- Dado un evento, cuando alguien intenta editarlo o borrarlo, entonces la base lo rechaza.
+- Dado una sesión de mesa, una venta, un mozo o un turno, cuando se consultan sus eventos, entonces la consulta está paginada y usa un índice.
+- Dado los eventos, cuando se sincronizan, entonces llegan a la nube una sola vez cada uno.
+
+### HU-221. Historial de una mesa y de una venta
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`
+
+Como cajero, quiero el historial de una mesa, para ver quién la abrió, qué se agregó o anuló, quién cobró y cómo.
+
+- Dado una mesa abierta, cuando aprieto "Historial" en la comanda, entonces veo apertura, cada envío, cada anulación con su motivo y la precuenta, en orden, con hora y usuario.
+- Dado una venta cobrada, cuando abro su historial desde comprobantes o desde el cierre, entonces también veo el cobro con sus medios, la factura o el cierre sin comprobante, y cada corrección de pago.
+- Dado el rol mozo, cuando pide el historial de una venta de otro mozo, entonces se rechaza.
+
+### HU-222. Vista del turno de cada mozo
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`, `reportes`
+
+Como dueño, quiero el turno de cada mozo en una pantalla, para rendir cuentas con él al final de la noche.
+
+- Dado un mozo y el turno abierto, cuando abro la vista, entonces veo sus mesas abiertas, las cobradas, los totales por medio de pago, sus gastos y el efectivo que tiene que rendir (efectivo cobrado menos sus gastos en efectivo).
+- Dado el rol mozo, cuando abre la vista, entonces ve solo su turno, mande el id que mande.
+- Dado el cajero o el dueño, cuando abren la vista, entonces pueden pasar de un mozo a otro.
+
+### HU-223. Corregir el medio de pago de una venta cobrada
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `seguridad`, `dinero`
+
+Como cajero, quiero corregir un pago registrado con el medio equivocado, para que la caja cierre sin esconder el error.
+
+- Dado una venta del turno abierto, cuando el cajero o el dueño corrigen el medio de un pago con motivo, entonces el pago muestra el medio nuevo, el servidor recalcula el efectivo esperado y una fila de corrección guarda medio anterior, nuevo, importe, motivo, quién y cuándo.
+- Dado sin motivo, o el mismo medio, o el medio del otro pago de la venta, cuando guardo, entonces se rechaza y no cambia nada.
+- Dado una venta de un turno cerrado, cuando intenta el cajero, entonces se rechaza. Cuando lo hace el dueño, entonces el turno cerrado no se edita: la corrección queda como ajuste posterior al cierre.
+- Dado el rol mozo, cuando llama al endpoint, entonces se rechaza.
+- Dado una venta facturada, cuando se corrige el medio, entonces la factura no se toca y el contador ve el medio actual.
+- Dado una venta corregida, cuando se lista, entonces lleva la marca "corregida".
+
+### HU-224. Revisión del turno y comparación por medio de pago
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `caja`, `dinero` · **Diagramas:** FUN-04
+
+Como cajero, quiero que el cierre me señale lo que no coincide, para encontrar el cobro equivocado en un minuto.
+
+- Dado la pantalla de cierre, cuando carga, entonces veo el total y la cantidad de pagos de cada medio (efectivo, QR / Mercado Pago, débito, crédito, transferencia), los gastos del turno y efectivo esperado = fondo inicial + efectivo cobrado − gastos en efectivo.
+- Dado los totales del posnet, QR y banco, cuando los cargo (opcional), entonces veo la diferencia de cada medio contra el sistema.
+- Dado una diferencia de efectivo, cuando un cobro del turno tiene un pago de exactamente ese importe con otro medio (sobra efectivo) o en efectivo (falta), entonces se sugiere, con enlace a su historial.
+- Dado la lista de cobros del turno, cuando filtro por medio, por mozo o "solo corregidos", entonces la lista sigue el filtro, paginada en el servidor.
+- Dado el cierre, cuando se confirma, entonces se guardan con él los totales cargados de los otros medios.
+
+### HU-225. Gastos chicos cargados por el mozo
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`, `caja`
+
+Como mozo, quiero cargar los gastos chicos que pago durante el turno, para que se descuenten cuando rindo.
+
+- Dado un turno abierto, cuando un mozo carga importe, motivo y medio de pago, entonces el gasto queda con su nombre y el turno.
+- Dado un gasto pagado en efectivo, cuando se cierra el turno, entonces se descuenta del efectivo esperado y de lo que ese mozo tiene que rendir.
+- Dado el dueño, cuando abre el panel o el cierre, entonces ve cada gasto con quién lo cargó.
+- Dado un gasto, cuando alguien intenta editarlo o borrarlo, entonces no se puede: un error se corrige con un movimiento opuesto del cajero o del dueño.
+
+### HU-226. Finalizar una venta sin comprobante
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `fiscal`, `contador`
+
+Como cajero, quiero terminar una venta cobrada sin emitir factura, para cerrar la mesa en un paso.
+
+- Dado una venta cobrada pendiente de factura, cuando aprieto "Finalizar venta" (F9) en la pantalla de factura, entonces no se manda nada a ARCA, la venta queda "sin comprobante" y vuelvo al salón.
+- Dado una venta "sin comprobante", cuando se calculan los totales del turno, el panel y la vista del mozo, entonces cuenta como cualquier venta, con su medio de pago.
+- Dado el listado de comprobantes, cuando filtro por "sin comprobante", entonces veo esas ventas y su cantidad.
+- Dado el contador, cuando abre facturación, entonces estas ventas están en una lista aparte (fecha, medio de pago, total) y no suman a los totales facturados.
+- Dado una venta "sin comprobante", cuando alguien intenta facturarla después, entonces se rechaza.
+
+> A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.
+
+### HU-227. Rango de fechas en Mis finanzas y en el panel
+**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `finanzas`, `reportes`
+
+Como dueño, quiero un filtro desde/hasta con atajos, para mirar cualquier período y no solo meses enteros.
+
+- Dado Mis finanzas o el panel, cuando elijo hoy, esta semana (desde el lunes) o este mes, entonces la lista, los totales y el resumen siguen la elección.
+- Dado dos fechas escritas a mano, cuando el rango es válido, entonces pasa lo mismo. Cuando no lo es, entonces queda en pantalla el último período válido.
+- Dado un movimiento guardado fuera del período en pantalla, cuando se guarda, entonces el período se estira para incluirlo.
+
+---
+## E23. Cimientos y entrega continua
+
+Repositorio, entornos, CI/CD y documentación. Tres entornos: desarrollo, pruebas y producción (ADR-0008). El objetivo es que desplegar sea aburrido.
+
+### HU-230. Repositorio y convenciones
+**Prioridad:** Must · **Etiquetas:** `devops`, `docs` · **Diagramas:** TEC-05
+
+Como desarrollador, quiero un repositorio con estructura y reglas claras, para que los dos trabajemos igual y nadie rompa `main`.
+
+- Dado el repositorio, cuando lo clono, entonces encuentro `backend/` (Django, con sus apps), `frontend/` (React), `instalador/`, `docs/` y un README que explica cada carpeta.
+- Dado un cambio, cuando intento pushear directo a `main`, entonces GitHub lo rechaza: solo entra por PR con una aprobación y CI en verde.
+- Dado un PR, cuando lo abro, entonces aparece una plantilla con qué cambia, cómo se probó, la story y el checklist de la DoD.
+- Dado un commit, cuando no sigue Conventional Commits, entonces el hook local o CI avisa.
+
+### HU-231. Entorno de desarrollo reproducible
+**Prioridad:** Must · **Etiquetas:** `devops` · **Diagramas:** ARQ-05
+
+Como desarrollador, quiero levantar todo en mi PC con pocos comandos, para empezar a trabajar sin pedir ayuda.
+
+- Dado una PC con Docker, cuando sigo el README, entonces en menos de 15 minutos tengo corriendo el servidor local, la API de la nube, el front y las dos bases.
+- Dado el entorno levantado, cuando corro el seed, entonces tengo dos locales ficticios, usuarios de cada rol, carta y una caja abierta.
+- Dado el seed, cuando lo reviso, entonces no tiene datos reales del cliente (ni CUIT, ni clientes, ni importes reales).
+- Dado ARCA, cuando trabajo en desarrollo, entonces uso un doble del web service o homologación, nunca producción.
+
+### HU-232. Esqueleto que camina: un saludo de punta a punta
+**Prioridad:** Must · **Etiquetas:** `devops`, `arquitectura` · **Diagramas:** ARQ-02, TEC-04, TEC-05
+
+Como equipo, queremos un recorrido mínimo que atraviese todas las piezas, para encontrar los problemas de integración antes de escribir negocio.
+
+- Dado la caja, cuando escribo un saludo, entonces el servidor local lo guarda en su base y deja una fila en el outbox.
+- Dado el outbox, cuando corre la sincronización, entonces la nube lo recibe y lo guarda bajo el local correcto.
+- Dado el portal, cuando entro como dueño de ese local, entonces veo el saludo con su hora de origen y de llegada.
+- Dado este recorrido, cuando se mergea a `main`, entonces queda en pruebas sin pasos manuales.
+
+> Tip: esta story es la que más enseña. Obliga a resolver despliegue, configuración, autenticación entre local y nube y CI antes de que haya presión por funcionalidades.
+
+### HU-233. Integración continua en cada pull request
+**Prioridad:** Must · **Etiquetas:** `devops`, `tests`, `seguridad` · **Diagramas:** TEC-05
+
+Como revisor, quiero que CI valide cada PR, para revisar diseño y lógica en lugar de buscar errores que una máquina encuentra sola.
+
+- Dado un PR, cuando se abre o actualiza, entonces CI corre formato y lint (ruff, oxlint), chequeo de tipos (mypy o pyright, `tsc`), tests (pytest con PostgreSQL en contenedor, vitest) y build.
+- Dado una dependencia con vulnerabilidad alta o crítica, o un secreto en el código, cuando corre CI, entonces falla y dice cuál (pip-audit, npm audit, gitleaks).
+- Dado código nuevo con un patrón inseguro de severidad alta o crítica, cuando corre CI, entonces el análisis estático lo marca en el PR y bloquea el merge; lo de severidad menor aparece como aviso sin bloquear (Semgrep CE, CodeQL mientras el repo sea público, Ruff `S`; ver ADR-0009).
+- Dado migraciones nuevas, cuando corre CI, entonces se aplican sobre una base vacía y sobre una con el seed, y `makemigrations --check` confirma que no falta ninguna.
+- Dado el tiempo de CI, cuando pasa de 10 minutos, entonces se registra como deuda.
+
+### HU-234. Despliegue continuo a pruebas
+**Prioridad:** Must · **Etiquetas:** `devops` · **Diagramas:** ARQ-05, TEC-05
+
+Como equipo, queremos que cada merge a `main` quede en pruebas, para que el cliente pueda probar siempre la última versión.
+
+- Dado un merge a `main`, cuando CI pasa, entonces se despliegan la API, las migraciones y el portal al entorno de pruebas de la nube.
+- Dado el servidor local, cuando hay merge, entonces se publica el instalador versionado en el canal "pruebas" (HU-254).
+- Dado el despliegue, cuando termina, entonces corre un smoke test (salud, login de prueba, lectura de un dato) y avisa si falla.
+- Dado pruebas, cuando se usa, entonces apunta a ARCA homologación y a su propia base.
+
+### HU-235. Promoción a producción con aprobación
+**Prioridad:** Must · **Etiquetas:** `devops` · **Diagramas:** TEC-05
+
+Como responsable, quiero llevar a producción solo una versión probada y aprobada, para que un error de pruebas no llegue al local.
+
+- Dado una versión probada, cuando creo el tag `vX.Y.Z`, entonces el pipeline espera aprobación manual en el environment "production" de GitHub.
+- Dado la aprobación, cuando se despliega, entonces se promueve el mismo artefacto probado, sin recompilar.
+- Dado un problema, cuando sigo el runbook de vuelta atrás, entonces vuelvo a la versión anterior en menos de 15 minutos.
+- Dado una migración no compatible hacia atrás, cuando se planifica, entonces se parte en dos despliegues (expandir y después contraer).
+
+### HU-236. Secretos por entorno
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `devops`
+
+Como responsable, quiero los secretos de cada entorno fuera del código, para que una filtración del repo no exponga nada.
+
+- Dado cualquier secreto (base, claves, credenciales de equipo), cuando se usa, entonces viene de variables de entorno o del almacén de secretos de cada entorno, nunca del repo.
+- Dado los tres entornos, cuando comparo sus secretos, entonces son distintos.
+- Dado un secreto comprometido, cuando sigo el runbook, entonces lo roto sin redeployar código.
+
+### HU-237. Documentación viva
+**Prioridad:** Should · **Etiquetas:** `docs`
+
+Como desarrollador, quiero la documentación en el repo y generada donde se pueda, para que no quede vieja.
+
+- Dado la API, cuando corre CI, entonces se genera el contrato OpenAPI (drf-spectacular) y se publica como artefacto.
+- Dado un diagrama Mermaid editado, cuando corro `npm run exportar` en `docs/diagramas/herramientas`, entonces se regeneran SVG, PNG y galería.
+- Dado una decisión de arquitectura, cuando se toma, entonces queda un ADR y se actualiza el índice de `docs/adr/README.md`.
+
+---
+
+## E24. Locales, identidad y seguridad en la nube
+
+Cada local es un tenant (ADR-0004). La nube tiene el login con email del dueño y del contador, las membresías, la auditoría base y los backups.
+
+### HU-240. Alta de un local
+**Prioridad:** Must · **Etiquetas:** `tenants`, `backend` · **Diagramas:** ARQ-04, DAT-02
+
+Como administrador de la plataforma, quiero dar de alta un local con sus datos, para que pueda empezar a operar.
+
+- Dado nombre, CUIT, razón social, condición frente al IVA, domicilio fiscal, inicio de actividades, punto de venta y zona horaria, cuando creo el local, entonces queda un tenant con identificador único y una invitación al dueño.
+- Dado un CUIT con dígito verificador inválido, cuando lo guardo, entonces se rechaza.
+- Dado el alta, cuando ocurre, entonces queda auditada.
+
+> Pendiente P-03: un mismo CUIT con varios locales.
+
+### HU-241. Aislamiento entre locales
+**Prioridad:** Must · **Etiquetas:** `tenants`, `seguridad`, `tests` · **Diagramas:** ARQ-04
+
+Como dueño, quiero que ningún otro local vea mis datos, para confiar en el sistema.
+
+- Dado cualquier tabla de negocio en la nube, cuando la reviso, entonces tiene `tenant_id` obligatorio y una política de Row Level Security.
+- Dado un usuario del local A, cuando pide un recurso del local B por su id, entonces recibe 404.
+- Dado una consulta cruda que olvida filtrar por local, cuando se ejecuta con el usuario de la app, entonces la base igual la restringe.
+- Dado la suite, cuando corre, entonces tiene tests de fuga entre dos locales para cada endpoint de lectura y escritura.
+
+### HU-242. Ingreso online del dueño y del contador
+**Prioridad:** Must · **Etiquetas:** `auth`, `frontend`, `backend` · **Diagramas:** FUN-07
+
+Como dueño o contador, quiero entrar al portal con email y contraseña, para ver lo de mis locales desde cualquier lugar.
+
+- Dado credenciales válidas, cuando ingreso, entonces veo los locales donde tengo membresía y elijo uno.
+- Dado credenciales inválidas, cuando ingreso, entonces el mensaje no dice si falló el email o la contraseña, y queda auditado.
+- Dado varios intentos fallidos, cuando paso el umbral, entonces se aplica una espera creciente.
+- Dado que olvidé la contraseña, cuando pido recuperarla, entonces recibo un enlace de un solo uso que vence, y al usarlo se cierran las otras sesiones.
+
+### HU-243. Membresías y roles en la nube
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `auth`
+
+Como dueño, quiero invitar al contador y, si tengo más de un local, ver todos con el mismo usuario, para administrar accesos en un solo lugar.
+
+- Dado el dueño, cuando invita al contador con su email, entonces se crea una membresía contador para ese local y el contador define su contraseña.
+- Dado un dueño con dos locales, cuando ingresa, entonces tiene dos membresías y cambia de local sin volver a entrar.
+- Dado un cambio de membresía o de rol, cuando ocurre, entonces queda auditado con antes y después.
+- Dado los roles, cuando se leen, entonces vienen de la base, nunca de un dato que el usuario pueda editar.
+
+### HU-244. Auditoría base de solo agregar
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `auditoria` · **Diagramas:** DAT-01, DAT-02
+
+Como dueño, quiero un registro que nadie pueda modificar de las acciones importantes, para saber quién hizo qué y cuándo.
+
+- Dado un evento auditable, cuando ocurre, entonces se escribe con tipo de actor (persona, equipo, sistema), actor, acción, entidad, antes, después, local y hora, en la misma transacción.
+- Dado una entrada, cuando alguien intenta editarla o borrarla, entonces la base lo impide (permiso revocado y trigger).
+- Dado la auditoría, cuando se consulta, entonces está paginada y filtra por local, actor, acción y fecha.
+
+### HU-245. Endurecimiento base de la API
+**Prioridad:** Must · **Etiquetas:** `seguridad`, `backend`, `observabilidad`
+
+Como sistema, quiero las protecciones básicas activas desde el primer despliegue, para no depender de acordarse después.
+
+- Dado cualquier solicitud, cuando no es HTTPS, entonces se redirige o rechaza; las cabeceras de seguridad y CORS están configuradas solo para los orígenes propios.
+- Dado cualquier entrada, cuando llega a una vista, entonces la validó un serializer.
+- Dado solicitudes repetidas desde un origen, cuando pasan el umbral, entonces se limitan (throttling de DRF).
+- Dado una solicitud, cuando se procesa, entonces los logs son estructurados, con id de correlación y sin datos sensibles.
+- Dado el endpoint de salud, cuando se consulta, entonces informa base accesible y edad del último lote de cada local.
+
+### HU-246. Backup de la nube con restauración probada
+**Prioridad:** Must · **Etiquetas:** `ops`, `datos` · **Diagramas:** OPS-02
+
+Como dueño, quiero que Mis finanzas no se pierda nunca, porque solo vive en la nube.
+
+- Dado la base de la nube, cuando es de noche, entonces un job hace `pg_dump`, lo cifra y lo guarda fuera del proveedor de la base, con retención documentada.
+- Dado un backup, cuando se restaura en un entorno aislado al menos una vez por mes, entonces se marca verificado. Un backup sin restauración probada no cuenta.
+
+---
+
+## E25. Servidor local
+
+El servidor de cada local: Django en modo local con su PostgreSQL, como servicio de Windows (ADR-0001, ADR-0003). Cumple el principio 3 de `CONTRIBUTING.md`: se actualiza solo, informa versión, último sync y errores, y su configuración se cambia desde la nube.
+
+### HU-250. Instalar el servidor local como servicio
+**Prioridad:** Must · **Etiquetas:** `local`, `ops` · **Diagramas:** ARQ-02, OPS-01
+
+Como instalador, quiero instalar el servidor local con un solo instalador, para dejar el local funcionando sin pasos manuales.
+
+- Dado una PC con Windows, cuando corro el instalador, entonces quedan instalados Python con la app, PostgreSQL y el worker, como servicios que arrancan solos al prender la PC.
+- Dado la instalación, cuando termina, entonces la base tiene un usuario con permisos mínimos y las migraciones aplicadas.
+- Dado un corte de luz, cuando vuelve, entonces todo arranca solo y la caja vuelve a estar disponible sin intervención.
+- Dado la carpeta de instalación, cuando la reviso, entonces la configuración sensible está protegida con permisos de NTFS y DPAPI.
+
+> Pendiente P-12: qué PC tiene el local.
+
+### HU-251. Servir la caja en la red del local
+**Prioridad:** Must · **Etiquetas:** `local`, `frontend`
+
+Como cajero, quiero abrir la caja en el navegador de cualquier PC del local, para no instalar nada en cada equipo.
+
+- Dado el servidor local, cuando abro su dirección desde la misma PC, entonces cargo la caja.
+- Dado otra PC o un celular de la red del local, cuando abro la dirección del servidor, entonces cargo la caja y uso mi PIN.
+- Dado un equipo fuera de la red del local, cuando intenta entrar, entonces no puede (el servidor no se publica a internet).
+
+### HU-252. Vincular el servidor local con su local en la nube
+**Prioridad:** Must · **Etiquetas:** `local`, `seguridad` · **Diagramas:** TEC-06
+
+Como instalador, quiero vincular el servidor con su local, para que solo ese equipo pueda enviar datos de ese local.
+
+- Dado un código de un solo uso generado por el dueño en el portal, cuando lo ingreso en el servidor local, entonces el equipo recibe una credencial propia y queda registrado.
+- Dado un código usado o vencido, cuando lo ingreso, entonces se rechaza.
+- Dado que el dueño revoca el equipo, cuando intenta sincronizar, entonces la nube lo rechaza.
+- Dado la credencial, cuando se guarda, entonces queda protegida con DPAPI, no en texto plano.
+
+### HU-253. Backups locales automáticos
+**Prioridad:** Must · **Etiquetas:** `local`, `ops`, `datos` · **Diagramas:** OPS-02
+
+Como dueño, quiero copias de la base del local hechas solas, para no perder ventas si se rompe la PC.
+
+- Dado el cierre de caja y cada noche, cuando corre el backup, entonces se hace un `pg_dump` con retención de N días en la PC y una copia en otro medio (disco externo o carpeta configurada).
+- Dado un backup, cuando lo restauro en una PC de prueba, entonces el sistema arranca con los datos de ese momento.
+- Dado un backup que falla, cuando pasa, entonces se informa en el reporte de salud y en la caja.
+
+> La nube ya tiene casi todo por la sincronización, pero lo que no se sincronizó todavía solo está en el local.
+
+### HU-254. Actualización a distancia con vuelta atrás
+**Prioridad:** Must · **Etiquetas:** `local`, `devops` · **Diagramas:** TEC-06, OPS-01
+
+Como equipo, queremos actualizar el servidor local sin ir al local, para corregir y mejorar sin depender de un viaje.
+
+- Dado una versión nueva en el canal del local, cuando no hay caja abierta (o en la ventana configurada), entonces el servidor la descarga, verifica su firma, hace un backup, aplica migraciones y reinicia.
+- Dado que la versión nueva no pasa el chequeo de salud, cuando falla, entonces vuelve sola a la versión anterior y lo informa.
+- Dado una caja abierta, cuando hay una versión nueva, entonces no se actualiza hasta el cierre.
+- Dado el canal ("pruebas" o "estable"), cuando se cambia desde la nube, entonces el servidor lo respeta.
+
+### HU-255. Configuración remota y reporte de salud
+**Prioridad:** Must · **Etiquetas:** `local`, `observabilidad` · **Diagramas:** OPS-03
+
+Como equipo, queremos ver el estado de cada servidor local y cambiar su configuración desde la nube, para operar sin TeamViewer.
+
+- Dado cada sincronización, cuando se envía, entonces incluye versión, último backup, facturas pendientes, vencimiento del certificado, espacio en disco y errores recientes.
+- Dado un cambio de configuración en la nube (intervalo X, canal, ventana de actualización), cuando el servidor sincroniza, entonces lo aplica.
+- Dado el portal, cuando el dueño o el equipo lo miran, entonces ven el estado de cada local.
+
+---
+
+## E26. Sincronización local → nube
+
+El outbox, el envío cada X y al cerrar caja, la ingesta en la nube y los controles (ADR-0005).
+
+### HU-260. Outbox transaccional
+**Prioridad:** Must · **Etiquetas:** `sync`, `backend`, `db` · **Diagramas:** TEC-04, DAT-01
+
+Como sistema, quiero cada cambio replicable anotado en la misma transacción que el cambio, para que nunca se pierda uno.
+
+- Dado una operación que cambia un dato replicable, cuando se confirma, entonces en la misma transacción queda una fila en `sync_outbox` con secuencia, entidad, versión y la foto completa del agregado.
+- Dado que la transacción falla, cuando se deshace, entonces tampoco queda la fila.
+- Dado el certificado, los hashes de PIN o cualquier secreto, cuando se arma una foto, entonces no se incluyen.
+
+### HU-261. Envío periódico configurable
+**Prioridad:** Must · **Etiquetas:** `sync`, `local` · **Diagramas:** TEC-04, EST-04
+
+Como dueño, quiero que los datos suban solos cada X, para verlos desde afuera sin que nadie haga nada.
+
+- Dado el intervalo configurado, cuando se cumple y hay pendientes, entonces se envían lotes en orden de secuencia por HTTPS con la credencial del equipo.
+- Dado un error de red, cuando falla un lote, entonces se reintenta con espera creciente y nada se pierde.
+- Dado la confirmación de la nube, cuando llega, entonces se marca confirmado hasta la secuencia indicada; lo confirmado se purga a los N días.
+- Dado el envío, cuando corre, entonces no frena ninguna operación de la caja.
+
+> Pendiente P-02: valor de X.
+
+### HU-262. Envío al cerrar la caja
+**Prioridad:** Must · **Etiquetas:** `sync`, `caja` · **Diagramas:** FUN-04
+
+Como dueño, quiero que al cerrar la caja se suba todo, para ver el cierre del turno esa misma noche.
+
+- Dado un cierre confirmado, cuando termina, entonces se dispara un envío inmediato.
+- Dado que no hay internet, cuando se cierra, entonces el cierre se completa igual y la pantalla avisa "se va a enviar cuando vuelva la conexión".
+
+### HU-263. Ingesta idempotente en la nube
+**Prioridad:** Must · **Etiquetas:** `sync`, `backend`, `api` · **Diagramas:** TEC-04
+
+Como nube, quiero aplicar cada lote sin duplicar nada aunque llegue dos veces o desordenado, para que la réplica sea confiable.
+
+- Dado un lote, cuando llega, entonces se valida la credencial del equipo y que el local sea el suyo.
+- Dado una foto de entidad, cuando se aplica, entonces se hace upsert por `(tenant_id, entity, entity_id)` solo si la versión es mayor.
+- Dado un evento de solo agregar (auditoría, trazabilidad), cuando llega repetido, entonces se ignora.
+- Dado un lote inválido, cuando llega, entonces se rechaza entero con un error claro y no se escribe nada.
+- Dado un lote aplicado, cuando termina, entonces se responde la última secuencia aplicada y se guarda un `sync_batch`.
+
+### HU-264. Modelo de lectura en la nube
+**Prioridad:** Must · **Etiquetas:** `sync`, `backend`, `db` · **Diagramas:** DAT-02
+
+Como panel y como contador, queremos tablas pensadas para consultar, para que las pantallas carguen rápido.
+
+- Dado las fotos recibidas, cuando se aplican, entonces se actualizan las tablas de ventas, pagos, comprobantes, turnos, carta y personal (sin PIN) de ese local.
+- Dado las consultas del panel y del contador, cuando corren, entonces usan índices por `(tenant_id, date)`.
+
+### HU-265. Estado de la sincronización y alertas
+**Prioridad:** Must · **Etiquetas:** `sync`, `observabilidad` · **Diagramas:** OPS-03, EST-04
+
+Como dueño, quiero saber si lo que veo está al día, para no tomar decisiones con datos viejos.
+
+- Dado la caja, cuando la miro, entonces el dueño ve pendientes de envío y hora del último envío confirmado.
+- Dado el portal, cuando lo miro, entonces cada local muestra la hora del último lote aplicado.
+- Dado un local que no sincroniza hace más del umbral, o dos lotes fallidos seguidos, cuando se detecta, entonces se manda una alerta por email al dueño y al equipo.
+
+> La falla peligrosa es la silenciosa: todo parece bien pero el último envío fue hace días. Esta story existe para eso.
+
+### HU-266. Control de conciliación diario
+**Prioridad:** Should · **Etiquetas:** `sync`, `datos`
+
+Como equipo, queremos comparar cada día lo que hay en el local con lo que hay en la nube, para detectar diferencias antes que el contador.
+
+- Dado un día cerrado, cuando corre el control, entonces se comparan cantidad de ventas, total cobrado y total facturado por fecha entre local y nube.
+- Dado una diferencia, cuando aparece, entonces se pide al local el reenvío de ese día y se avisa al equipo.
+
+---
+
+## E27. Rendimiento
+
+La velocidad es vital. No alcanza con decirlo: hay que medir el sistema anterior, fijar un presupuesto y que CI avise si se rompe.
+
+### HU-270. Medir la línea base del sistema anterior
+**Prioridad:** Must · **Etiquetas:** `rendimiento`, `spike`
+
+Como equipo, queremos saber cuánto tarda hoy el sistema anterior en cada paso, para tener un número contra el cual comparar.
+
+- Dado la PC real del local y un turno representativo, cuando se mide, entonces queda la mediana y el percentil 95 de: buscar producto, agregar ítem, enviar comanda, cobrar, emitir factura e imprimir, y cerrar caja.
+- Dado las mediciones, cuando se documentan, entonces se separan respuesta de pantalla, guardado, impresión y autorización de ARCA.
+
+> Hacerlo mientras el sistema anterior sigue en uso. Después del corte ya no se puede medir.
+
+### HU-271. Presupuesto de rendimiento en CI
+**Prioridad:** Must · **Etiquetas:** `rendimiento`, `tests`, `devops`
+
+Como equipo, queremos que CI falle si una operación crítica se vuelve más lenta que el presupuesto, para no degradar sin darnos cuenta.
+
+- Dado los umbrales acordados con la línea base (HU-270), cuando corre la suite de rendimiento, entonces mide p95 de buscar producto, enviar comanda y cobrar contra el servidor local con datos de volumen real.
+- Dado que alguno pasa el umbral, cuando termina, entonces el PR falla con el detalle.
+- Dado cualquier operación de la venta, cuando corre, entonces no espera a internet, a ARCA ni a la impresora: esas tareas van a colas.
+
+---
+
+## E28. Migración desde el sistema anterior
+
+Pasar los maestros y cortar sin duplicar comprobantes ni saltear números.
+
+### HU-280. Continuidad fiscal en el corte
+**Prioridad:** Must · **Etiquetas:** `fiscal`, `ops` · **Diagramas:** OPS-01
+
+Como dueño, quiero que el primer comprobante del sistema nuevo siga la numeración de ARCA, para que no haya saltos ni duplicados.
+
+- Dado el día del corte, cuando se habilita el sistema nuevo, entonces se consulta a ARCA el último número autorizado de cada tipo y punto de venta y se usa el siguiente.
+- Dado el período de ensayo en paralelo, cuando se trabaja, entonces solo un sistema emite comprobantes reales; el otro factura en homologación o no factura.
+- Dado el corte, cuando se hace, entonces queda un acta con último número del sistema anterior, primer número del sistema nuevo y hora.
+
+> Depende de P-08 (qué cuenta como venta en el sistema anterior) y de una copia actual de la base (P-15).
+
+### HU-281. Importar mozos y clientes del sistema anterior
+**Prioridad:** Should · **Etiquetas:** `datos`
+
+Como dueño, quiero los mozos y los clientes con CUIT del sistema anterior cargados, para no tipearlos de nuevo.
+
+- Dado las tablas de mozos y clientes del sistema anterior, cuando corre la importación, entonces se crean los mozos activos y los clientes con CUIT válido, sin duplicar si corre dos veces.
+- Dado un cliente con CUIT inválido, cuando se importa, entonces queda en un reporte para revisar a mano.
+- Dado los datos personales, cuando se importan, entonces se cargan solo los campos necesarios para facturar.
+
+---
+
+## E30. Multilenguaje (v2)
+
+Fuera del MVP.
+
+### HU-300. Textos externalizados desde el día uno
+**Prioridad:** Should · **Versión:** MVP (preparación) · **Etiquetas:** `frontend`, `i18n`
+
+Como equipo, queremos que ningún texto de pantalla esté escrito en el código, para que traducir en v2 sea agregar archivos y no reescribir pantallas.
+
+- Dado cualquier texto visible, cuando se escribe una pantalla nueva, entonces sale de un archivo de recursos (por ejemplo `es-AR.json`).
+- Dado fechas, importes y números, cuando se muestran, entonces usan el formato del idioma activo (`Intl`).
+
+> Tip de Tech Lead: esto cuesta casi nada si se hace desde la primera pantalla y mucho si se hace después.
+
+### HU-301. Elegir idioma de la interfaz
+**Prioridad:** Could · **Versión:** v2 · **Etiquetas:** `frontend`, `i18n`
+
+Como usuario, quiero elegir el idioma de la interfaz, para usar el sistema en mi idioma.
+
+- Dado los idiomas disponibles, cuando elijo uno, entonces toda la interfaz cambia y la elección queda guardada para mi usuario.
+
+### HU-302. Carta en varios idiomas
+**Prioridad:** Could · **Versión:** v2 · **Etiquetas:** `carta`, `i18n`
+
+Como dueño, quiero cargar nombre y descripción de cada producto en otros idiomas, para el menú QR.
+
+- Dado un producto, cuando cargo su traducción, entonces se guarda por idioma; si falta, se muestra el español.
+
+---
+
+## E31. Menú QR (v2)
+
+Fuera del MVP.
+
+### HU-310. Carta pública por local
+**Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `carta`, `frontend` · **Diagramas:** FUT-01
+
+Como cliente del local, quiero escanear un QR en la mesa y ver la carta con precios, para elegir sin esperar al mozo.
+
+- Dado un local, cuando se publica su carta, entonces tiene una URL pública y un QR para imprimir.
+- Dado la carta publicada, cuando la abro en el celular, entonces veo categorías, productos activos, descripción, foto opcional y precio vigente.
+- Dado un producto desactivado o marcado "agotado", cuando abro la carta, entonces no aparece o aparece como agotado.
+- Dado la carta pública, cuando se consulta, entonces no expone ningún otro dato del local.
+
+> Se sirve desde la nube con la carta sincronizada. Muestra los precios al último envío del local.
+
+### HU-311. Elegir idioma en el menú QR
+**Prioridad:** Could · **Versión:** v2 · **Etiquetas:** `i18n` · **Diagramas:** FUT-01
+
+Como turista, quiero ver la carta en mi idioma, para entender qué pido.
+
+- Dado el idioma del navegador, cuando abro la carta, entonces se muestra en ese idioma si existe, y puedo cambiarlo.
+
+---
+
+## E32. Stock de bebidas (v2)
+
+Fuera del MVP. El stock general queda fuera de alcance; esta épica cubre el control de bebidas pedido para v2 (confirmar, P-18).
+
+### HU-320. Productos con stock controlado
+**Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `stock` · **Diagramas:** FUT-02
+
+Como dueño, quiero marcar qué productos controlan stock, para empezar por las bebidas sin complicar el resto.
+
+- Dado un producto, cuando lo marco "controla stock", entonces tiene existencia, unidad y stock mínimo.
+
+### HU-321. Descuento automático al vender
+**Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `stock` · **Diagramas:** FUT-02
+
+Como dueño, quiero que la venta descuente stock sola, para no contar a mano.
+
+- Dado un producto con stock, cuando se envía una comanda, entonces se descuenta en la misma transacción con un movimiento de stock.
+- Dado una línea anulada, cuando se anula, entonces se devuelve el stock con otro movimiento.
+- Dado stock en cero, cuando se vende, entonces se permite y se avisa (no frena la venta).
+
+### HU-322. Ingreso de mercadería
+**Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `stock`
+
+Como dueño, quiero cargar lo que compro, para que el stock suba.
+
+- Dado una compra con productos y cantidades, cuando la cargo, entonces el stock aumenta y queda el movimiento con fecha, proveedor opcional y quién la cargó.
+
+### HU-323. Inventario y ajuste
+**Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `stock`, `auditoria`
+
+Como dueño, quiero contar lo que hay y ajustar, para que el sistema coincida con la heladera.
+
+- Dado un conteo, cuando lo cargo, entonces se genera un ajuste por la diferencia, con motivo, auditado.
+
+### HU-324. Alertas de stock mínimo
+**Prioridad:** Could · **Versión:** v2 · **Etiquetas:** `stock`, `reportes`
+
+Como dueño, quiero saber qué está por faltar, para comprar a tiempo.
+
+- Dado productos por debajo del mínimo, cuando abro el panel, entonces los veo listados.
+
+---
+
+## E33. Pedidos desde celulares (v2)
+
+Fuera del MVP. La arquitectura local first ya lo permite: el celular se conecta al servidor local por la red del local (HU-251).
+
+### HU-330. El mozo carga la comanda desde el celular
+**Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `frontend`, `pos`
+
+Como mozo, quiero tomar el pedido en la mesa con el celular, para no ir y volver a la caja.
+
+- Dado un celular en la red del local registrado como terminal, cuando ingreso con mi PIN, entonces veo el salón, abro mesas y cargo comandas con una pantalla pensada para tocar.
+- Dado el envío, cuando lo confirmo, entonces sale en la cocina igual que desde la caja.
+
+---
