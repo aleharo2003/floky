@@ -19,7 +19,7 @@ SOURCE = BACKLOG_DIR / "01-epicas-y-stories.md"
 TARGET = BACKLOG_DIR / "jira-import.csv"
 
 PRIORITY = {"Must": "High", "Should": "Medium", "Could": "Low"}
-MAX_LABELS = 8
+MAX_LABELS = 9
 
 EPIC_RE = re.compile(r"^## (E(\d+))\. (.+)$")
 STORY_RE = re.compile(r"^### (HU-(\d+))\. (.+)$")
@@ -111,7 +111,8 @@ def build_rows() -> list[list[str]]:
             meta = parse_meta(line)
             current["priority"] = PRIORITY.get(meta.get("Prioridad", ""), "")
             tags = re.findall(r"`([^`]+)`", meta.get("Etiquetas", ""))
-            current["labels"] = [version_label(meta), *tags]
+            moscow = meta.get("Prioridad", "").lower()
+            current["labels"] = [version_label(meta), moscow, *tags] if moscow else [version_label(meta), *tags]
             current["diagrams"] = meta.get("Diagramas", "")
         elif current is not None:
             current["body"].append(line)
