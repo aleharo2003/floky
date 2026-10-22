@@ -1,12 +1,12 @@
 # ADR-0005. Sincronización con outbox y un solo dueño por dato
 
-- **Estado:** propuesta. "Cada X tiempo y al cerrar la caja" es un requisito; el mecanismo es la propuesta.
+- **Estado:** aceptada el 22/10/2026 (PR #1). El valor de X sigue abierto (P-02).
 
 ## Contexto
 
 La operación vive en la base local ([ADR-0001](0001-local-first.md)). El dueño y el contador miran en la nube. Hay que subir los cambios sin frenar la caja, sin perder nada si se corta internet y sin duplicar si un envío se repite.
 
-## Decisión propuesta
+## Decisión
 
 ### 1. Un solo dueño por dato
 

@@ -1,6 +1,6 @@
 # ADR-0006. Factura electrónica desde el servidor local y qué hacer sin internet
 
-- **Estado:** propuesta. La parte "sin internet" depende de una definición del contador de cada cliente.
+- **Estado:** aceptada el 22/10/2026 (PR #1), salvo el punto 5 ("sin internet"), que sigue en propuesta hasta que responda el contador (P-10).
 
 ## Contexto
 
@@ -9,7 +9,7 @@
 - Requisito: sin internet **se vende igual**, y la factura con CAE sale al volver la conexión.
 - La **RG 5782/2025**, vigente desde el 01/06/2026, deja el **CAEA** solo para contingencias. Se pide por web service para períodos quincenales (del 1 al 15 y del 16 a fin de mes), hasta 5 días antes; usa **puntos de venta específicos** con el mismo domicilio; y lo emitido se informa hasta el octavo día corrido posterior al fin del período.
 
-## Decisión propuesta
+## Decisión
 
 1. **El servidor local habla con ARCA** (WSAA para el ticket de acceso, WSFEv1 para el CAE). Si lo hiciera la nube, el CAE llegaría recién después de sincronizar, horas más tarde.
 2. **El cobro nunca espera a ARCA.** El cobro se confirma en la base local y deja un trabajo fiscal en una cola; un worker local lo procesa.

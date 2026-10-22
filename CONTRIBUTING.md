@@ -52,7 +52,7 @@ Tres principios mandan en cada decisión técnica. Cuando propongas una solució
 
 1. Cada cambio sale de una issue de Jira. La rama empieza con su clave, así el PR aparece dentro de la issue: `XXX-57-walking-skeleton` (XXX es la clave del proyecto en Jira).
 2. Commits chicos con [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`, `ci:`.
-3. Pull request contra `main`, con la plantilla completa.
+3. Pull request contra `main`, con la plantilla completa. El título sigue Conventional Commits y termina con la clave de Jira entre paréntesis: `ci: add CI pipeline (FLK-5)`. Se mergea con squash, así que ese título es el mensaje que queda en `main`: revisalo antes de mergear.
 4. **Nadie mergea su propio PR.** La otra persona revisa y aprueba.
 5. CI tiene que estar en verde para mergear.
 

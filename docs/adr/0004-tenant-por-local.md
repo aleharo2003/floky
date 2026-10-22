@@ -1,6 +1,6 @@
 # ADR-0004. Cada local es un tenant
 
-- **Estado:** propuesta. El modelo (tenant = local) está acordado; el mecanismo de aislamiento se valida al implementar la primera API de la nube.
+- **Estado:** aceptada el 22/10/2026 (PR #1). El mecanismo de aislamiento se valida al implementar la primera API de la nube; si cambia, va en un ADR nuevo.
 
 ## Contexto
 
