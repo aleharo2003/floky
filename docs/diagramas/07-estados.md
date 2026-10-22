@@ -6,7 +6,7 @@
 
 ## EST-01. Comprobante fiscal
 
-**Stories:** HU-162, HU-164, HU-165, HU-226, HU-168.
+**Stories:** HU-162, HU-164, HU-165, HU-226, HU-168, HU-169.
 
 <!-- diagram: EST-01 -->
 ```mermaid
@@ -16,12 +16,16 @@ stateDiagram-v2
     state "Pendiente de CAE" as Pendiente
     state "En duda" as Duda
     state "Facturada" as Facturada
+    state "Facturada con CAEA" as Caea
+    state "CAEA informado" as Informada
     state "Rechazada" as Rechazada
     state "Sin comprobante" as SinComp
     state "Anulación pendiente" as AnulPend
     state "Anulada con nota de crédito" as Anulada
     Cobrada --> Pendiente: F8 factura
     Cobrada --> SinComp: F9 finalizar
+    Cobrada --> Caea: F8 sin internet, hay CAEA
+    Caea --> Informada: vuelve internet, se informa
     Pendiente --> Facturada: ARCA aprueba
     Pendiente --> Rechazada: ARCA rechaza
     Pendiente --> Duda: sin respuesta
@@ -33,11 +37,12 @@ stateDiagram-v2
     AnulPend --> Facturada: nota de crédito rechazada
     SinComp --> [*]
     Anulada --> [*]
+    Informada --> [*]
 ```
 
 **Archivos EST-01:** [SVG](svg/EST-01.svg) · [PNG](png/EST-01.png) · [Mermaid](fuentes/EST-01.mmd).
 
-**Lectura:** "Sin comprobante" es final: no se puede facturar después. "En duda" existe para no duplicar: antes de volver a pedir, se consulta (TEC-03).
+**Lectura:** "Sin comprobante" es final: no se puede facturar después. "En duda" existe para no duplicar: antes de volver a pedir, se consulta (TEC-03). Sin internet, si hay CAEA vigente, la factura es válida en el momento y después se informa; "Pendiente de CAE" queda solo como último recurso.
 
 <a id="est-02"></a>
 

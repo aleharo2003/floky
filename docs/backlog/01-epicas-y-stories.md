@@ -473,7 +473,8 @@ Como cajero, quiero que una factura rechazada o sin respuesta quede pendiente y 
 - Dado que ARCA rechaza, cuando responde, entonces la venta queda pendiente con el motivo y puedo reintentar o dejarla para después.
 - Dado un timeout, cuando el worker reintenta, entonces primero pregunta a ARCA si ese número quedó autorizado y usa esa respuesta.
 - Dado facturas pendientes, cuando vuelve ARCA o internet, entonces se reintentan en orden sin que nadie lo haga.
-- Dado que no hay internet, cuando cobro, entonces entrego un ticket provisorio "no válido como factura" y la venta queda pendiente de CAE.
+- Dado que no hay internet y hay un CAEA vigente, cuando se factura, entonces se emite con CAEA (HU-169).
+- Dado que no hay internet ni CAEA vigente, cuando se factura, entonces se entrega un ticket provisorio "no válido como factura" y la venta queda pendiente de CAE.
 - Dado facturas pendientes al cierre, cuando se arma el reporte del turno, entonces muestra cuántas y por cuánto.
 
 ### HU-165. Nota de crédito
@@ -492,24 +493,38 @@ Como cliente, quiero una factura legible con el QR de ARCA, para poder verificar
 - Dado una factura autorizada, cuando se muestra o imprime, entonces tiene emisor, receptor, detalle, CAE, vencimiento y el QR.
 - Dado el QR, cuando se arma, entonces es la URL `https://www.arca.gob.ar/fe/qr/?p=` con el JSON versión 1 en Base64 (`ver`, `fecha`, `cuit`, `ptoVta`, `tipoCmp`, `nroCmp`, `importe`, `moneda`, `ctz`, `tipoDocRec`, `nroDocRec`, `tipoCodAut`, `codAut`), con `tipoCodAut` "E" para CAE o "A" para CAEA.
 
-### HU-167. Factura A a un cliente con CUIT
-**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `fiscal`
+### HU-167. Facturas A, B y C según emisor y receptor
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal`
 
-Como cajero, quiero facturar a una empresa, para que los clientes que necesitan Factura A la reciban.
+Como cajero, quiero que el sistema elija el tipo de comprobante correcto, para facturar a cualquier cliente sin pensar en la norma.
 
-- Dado un CUIT válido, cuando lo cargo, entonces el tipo de factura y el desglose de IVA siguen la condición del receptor.
+- Dado un local responsable inscripto y un receptor con CUIT responsable inscripto, cuando facturo, entonces sale Factura A con el IVA discriminado.
+- Dado un local responsable inscripto y un consumidor final o monotributista, cuando facturo, entonces sale Factura B.
+- Dado un local monotributista, cuando facturo, entonces sale Factura C.
+- Dado cualquier tipo de factura, cuando se anula, entonces la nota de crédito es del mismo tipo (A, B o C).
 - Dado un CUIT inválido, cuando lo cargo, entonces se rechaza antes de llamar a ARCA.
 
-> No está en el prototipo (solo Factura B). Confirmar con el contador de cada local si emite A, B o C (P-09).
+> El sistema se ofrece a distintos negocios, así que no puede quedar atado a un solo tipo de factura.
 
 ### HU-168. Spike: contingencia con CAEA (RG 5782)
-**Prioridad:** Should · **Etiquetas:** `spike`, `fiscal` · **Diagramas:** TEC-03
+**Prioridad:** Must · **Etiquetas:** `spike`, `fiscal` · **Diagramas:** TEC-03
 
-Como equipo, queremos saber qué costaría emitir con CAEA durante un corte, para decidir con el contador entre CAEA y ticket provisorio.
+Como equipo, queremos probar el circuito de CAEA en homologación, para implementar HU-169 con hechos y no con suposiciones.
 
 - Dado la RG 5782/2025, cuando termina el spike, entonces está escrito qué hace falta: punto de venta específico, solicitud quincenal (hasta 5 días antes de cada período), informe de lo emitido hasta el octavo día posterior y cómo cambia el QR.
 - Dado homologación, cuando termina el spike, entonces se pidió un CAEA de prueba y se informó un comprobante.
-- Dado el resultado, cuando se presenta, entonces hay una estimación para implementarlo y una recomendación.
+- Dado el resultado, cuando se presenta, entonces hay una estimación para implementar HU-169.
+
+### HU-169. Facturar con CAEA cuando no hay internet
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal` · **Diagramas:** EST-01, FUN-03
+
+Como cajero, quiero que la factura salga válida aunque se corte internet, para que el cliente se vaya con su comprobante.
+
+- Dado que hay conexión, cuando faltan 5 días o menos para la próxima quincena, entonces el servidor local pide el CAEA y lo guarda. Si falla, reintenta y avisa al dueño.
+- Dado que no hay internet y hay un CAEA vigente, cuando se factura, entonces se emite con el CAEA en su punto de venta específico, con su propia numeración, y se imprime con el QR (`tipoCodAut` "A").
+- Dado una factura emitida con CAEA, cuando el cajero la ve, entonces dice "emitida en contingencia". El cajero no tiene que elegir nada.
+- Dado comprobantes emitidos con CAEA, cuando vuelve la conexión, entonces se informan a ARCA.
+- Dado el fin de una quincena, cuando quedan comprobantes con CAEA sin informar, o el CAEA no se usó, entonces el sistema lo informa dentro del plazo (hasta el octavo día corrido después del fin del período) y alerta al dueño y al equipo si algo falla.
 
 ---
 

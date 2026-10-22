@@ -17,7 +17,7 @@ Un ADR registra una decisión importante: el contexto, las opciones que se mirar
 | [0003](0003-base-local-postgresql.md) | PostgreSQL también en el servidor local | Propuesta, se valida en el esqueleto |
 | [0004](0004-tenant-por-local.md) | Cada local es un tenant, con aislamiento en dos capas | Aceptada |
 | [0005](0005-sincronizacion-outbox.md) | Sincronización con outbox y un solo dueño por dato | Aceptada |
-| [0006](0006-arca-desde-el-servidor-local.md) | Factura electrónica desde el servidor local y qué hacer sin internet | Aceptada, salvo "sin internet" (espera al contador) |
+| [0006](0006-arca-desde-el-servidor-local.md) | Factura electrónica desde el servidor local y qué hacer sin internet | Aceptada |
 | [0007](0007-impresion-escpos.md) | Impresión directa en ESC/POS desde el servidor local | Aceptada |
 | [0008](0008-entornos-hosting-ci-cd.md) | Entornos, hosting de bajo costo y CI/CD | Aceptada |
 | [0009](0009-analisis-estatico-seguridad.md) | Análisis estático de seguridad (SAST) en CI | Aceptada |

@@ -613,7 +613,7 @@
     N --&gt;|&quot;no&quot;| O[&quot;Aviso, se puede reimprimir&quot;]
     N --&gt;|&quot;sí&quot;| P[&quot;Volver al salón&quot;]
     O --&gt; P</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
-<section id="FUN-03"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-136, HU-140, HU-162, HU-164, HU-226, HU-172</p><h2>FUN-03. Cobrar, facturar o finalizar sin comprobante</h2><nav><a href="06-flujos-funcionales.md#fun-03">Explicación y escenarios</a><a href="png/FUN-03.png">PNG</a><a href="svg/FUN-03.svg">SVG</a><a href="fuentes/FUN-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-03.svg" alt="FUN-03. Cobrar, facturar o finalizar sin comprobante" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+<section id="FUN-03"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-136, HU-140, HU-162, HU-164, HU-169, HU-226, HU-172</p><h2>FUN-03. Cobrar, facturar o finalizar sin comprobante</h2><nav><a href="06-flujos-funcionales.md#fun-03">Explicación y escenarios</a><a href="png/FUN-03.png">PNG</a><a href="svg/FUN-03.svg">SVG</a><a href="fuentes/FUN-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-03.svg" alt="FUN-03. Cobrar, facturar o finalizar sin comprobante" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
     A[&quot;F4: precuenta&quot;] --&gt; B[&quot;F6: cobrar&quot;]
     B --&gt; C[&quot;Uno o dos medios de pago&quot;]
     C --&gt; D{&quot;¿Suman el total?&quot;}
@@ -623,7 +623,10 @@
     F --&gt;|&quot;F9&quot;| G[&quot;Sin comprobante&lt;br/&gt;lista aparte para el contador&quot;]
     F --&gt;|&quot;F8 factura&quot;| H[&quot;Condición IVA del receptor&lt;br/&gt;consumidor final por defecto&quot;]
     H --&gt; I{&quot;¿Hay internet?&quot;}
-    I --&gt;|&quot;no&quot;| J[&quot;Ticket provisorio&lt;br/&gt;no válido como factura&quot;]
+    I --&gt;|&quot;no&quot;| Q{&quot;¿Hay CAEA vigente?&quot;}
+    Q --&gt;|&quot;sí&quot;| R[&quot;Factura con CAEA y QR&lt;br/&gt;emitida en contingencia&quot;]
+    R --&gt; S[&quot;Se informa a ARCA&lt;br/&gt;al volver internet&quot;]
+    Q --&gt;|&quot;no&quot;| J[&quot;Ticket provisorio&lt;br/&gt;no válido como factura&quot;]
     J --&gt; K[&quot;Pendiente de CAE&lt;br/&gt;se reintenta solo&quot;]
     I --&gt;|&quot;sí&quot;| L{&quot;¿ARCA aprueba?&quot;}
     L --&gt;|&quot;sí&quot;| M[&quot;Factura con CAE y QR impresa&quot;]
@@ -684,18 +687,22 @@
     F --&gt; J[&quot;Datos al HH:MM del último envío&quot;]
     F --&gt; K{&quot;¿Intenta otra ruta?&quot;}
     K --&gt;|&quot;sí&quot;| L[&quot;Vuelve a facturación, 403 en la API&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
-<section id="EST-01"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-162, HU-164, HU-165, HU-226, HU-168</p><h2>EST-01. Comprobante fiscal</h2><nav><a href="07-estados.md#est-01">Explicación y escenarios</a><a href="png/EST-01.png">PNG</a><a href="svg/EST-01.svg">SVG</a><a href="fuentes/EST-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-01.svg" alt="EST-01. Comprobante fiscal" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
+<section id="EST-01"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-162, HU-164, HU-165, HU-226, HU-168, HU-169</p><h2>EST-01. Comprobante fiscal</h2><nav><a href="07-estados.md#est-01">Explicación y escenarios</a><a href="png/EST-01.png">PNG</a><a href="svg/EST-01.svg">SVG</a><a href="fuentes/EST-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-01.svg" alt="EST-01. Comprobante fiscal" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
     [*] --&gt; Cobrada
     state &quot;Venta cobrada&quot; as Cobrada
     state &quot;Pendiente de CAE&quot; as Pendiente
     state &quot;En duda&quot; as Duda
     state &quot;Facturada&quot; as Facturada
+    state &quot;Facturada con CAEA&quot; as Caea
+    state &quot;CAEA informado&quot; as Informada
     state &quot;Rechazada&quot; as Rechazada
     state &quot;Sin comprobante&quot; as SinComp
     state &quot;Anulación pendiente&quot; as AnulPend
     state &quot;Anulada con nota de crédito&quot; as Anulada
     Cobrada --&gt; Pendiente: F8 factura
     Cobrada --&gt; SinComp: F9 finalizar
+    Cobrada --&gt; Caea: F8 sin internet, hay CAEA
+    Caea --&gt; Informada: vuelve internet, se informa
     Pendiente --&gt; Facturada: ARCA aprueba
     Pendiente --&gt; Rechazada: ARCA rechaza
     Pendiente --&gt; Duda: sin respuesta
@@ -706,7 +713,8 @@
     AnulPend --&gt; Anulada: nota de crédito aprobada
     AnulPend --&gt; Facturada: nota de crédito rechazada
     SinComp --&gt; [*]
-    Anulada --&gt; [*]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+    Anulada --&gt; [*]
+    Informada --&gt; [*]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
 <section id="EST-02"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-130, HU-131, HU-136, HU-137, HU-140</p><h2>EST-02. Sesión de mesa</h2><nav><a href="07-estados.md#est-02">Explicación y escenarios</a><a href="png/EST-02.png">PNG</a><a href="svg/EST-02.svg">SVG</a><a href="fuentes/EST-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-02.svg" alt="EST-02. Sesión de mesa" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
     state &quot;Libre&quot; as Libre
     state &quot;Ocupada&quot; as Ocupada

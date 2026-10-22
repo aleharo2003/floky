@@ -14,8 +14,6 @@ Cada pregunta dice a quién hay que hacérsela y qué bloquea. Cuando se resuelv
 
 | ID | Pregunta | Bloquea |
 |---|---|---|
-| P-09 | ¿El local emite solo Factura B o también A? | HU-167 |
-| P-10 | Si se corta internet, ¿se puede entregar un ticket provisorio y emitir la factura con CAE al volver la conexión, o hay que usar CAEA (RG 5782)? | HU-164, HU-168, ADR-0006 |
 | P-17 | ¿Qué ventas se pueden "finalizar sin comprobante"? | HU-226 |
 
 ## Del equipo
@@ -43,4 +41,6 @@ Cada pregunta dice a quién hay que hacérsela y qué bloquea. Cuando se resuelv
 | P-16 | ¿Usa delivery? | No, pero se puede ofrecer como función activable | E34, HU-247 |
 | P-18 | ¿Stock de bebidas en v2? | Sí, como función activable | E32, HU-247 |
 | P-21 | Mis finanzas, ¿borrar o anular? | Anular con motivo, como el resto del dinero | HU-211, HU-214 |
+| P-09 | ¿Qué tipos de factura se emiten? | Todos (A, B y C). El sistema se ofrece a distintos negocios | HU-167 |
+| P-10 | ¿Qué pasa si se corta internet? | CAEA. Si no hay CAEA disponible, ticket provisorio como último recurso | ADR-0006, HU-169 |
 | P-08 (parte) | ¿Qué son las operaciones "invitación" del sistema anterior? | Ventas que se cerraron sin factura. Equivalen a "finalizar sin comprobante" | HU-226, HU-280 |

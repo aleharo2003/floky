@@ -30,7 +30,7 @@ Un sistema de punto de venta y gestión para restaurantes, confiterías y bares.
 
 | Versión | Qué incluye |
 |---|---|
-| MVP | Acceso del personal con PIN, carta y salón, comandas, cobro con varios medios de pago, caja con arqueo, factura electrónica B (y A si hace falta), impresión de tickets, trazabilidad del turno, sincronización con la nube, panel del dueño, vista del contador, finanzas del dueño, importación desde el sistema anterior |
+| MVP | Acceso del personal con PIN, carta y salón, comandas, cobro con varios medios de pago, caja con arqueo, factura electrónica A, B y C, con contingencia CAEA si se corta internet, impresión de tickets, trazabilidad del turno, sincronización con la nube, panel del dueño, vista del contador, finanzas del dueño, importación desde el sistema anterior |
 | v1.x | Mejoras sobre lo anterior: pasar y unir mesas, comanda impresa en cocina, actualización masiva de precios, cuenta corriente de clientes |
 | v2 | Multilenguaje, menú QR público por local, stock (empezando por bebidas), mozos cargando pedidos desde el celular |
 
