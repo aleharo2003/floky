@@ -1,6 +1,6 @@
 # ADR-0007. Impresión directa en ESC/POS desde el servidor local
 
-- **Estado:** aceptada el 22/10/2026 (PR #1). En cada instalación hay que confirmar cómo está conectada la impresora (P-11).
+- **Estado:** aceptada el 22/10/2026 (PR #1). En el primer local la impresora está por USB, se puede pasar a red y no tiene cajón. En cada instalación nueva hay que confirmar cómo está conectada.
 
 ## Contexto
 

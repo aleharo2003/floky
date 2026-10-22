@@ -130,7 +130,7 @@ sequenceDiagram
     participant DB as PostgreSQL local
     participant API as Django nube
     participant PN as PostgreSQL nube
-    Note over K: cada X minutos, al cerrar caja o con Sincronizar ahora
+    Note over K: cada X horas, al cerrar caja o con Enviar ahora
     K->>DB: lee hasta N filas sin confirmar, por secuencia
     K->>API: POST lote, credencial del equipo, salud del servidor
     API->>API: valida equipo y local

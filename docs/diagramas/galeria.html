@@ -187,16 +187,18 @@
     subgraph EscribeLocal[&quot;Se escribe en el local&quot;]
         A1[&quot;Salón, comandas, ventas, pagos&quot;]
         A2[&quot;Caja, comprobantes, eventos&quot;]
-        A3[&quot;Carta, mesas, personal con PIN&quot;]
+        A3[&quot;Mesas, personal con PIN&quot;]
     end
     subgraph EscribeNube[&quot;Se escribe en la nube&quot;]
         B1[&quot;Locales y membresías&quot;]
         B2[&quot;Usuarios con email: dueño y contador&quot;]
         B3[&quot;Mis finanzas&quot;]
         B4[&quot;Configuración del servidor local&quot;]
+        B5[&quot;Carta y precios&quot;]
     end
     EscribeLocal --&gt;|&quot;sube por el outbox&quot;| Replica[(&quot;Réplica de lectura en la nube&quot;)]
-    B4 --&gt;|&quot;baja al sincronizar&quot;| ServidorLocal[&quot;Servidor local&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+    B4 --&gt;|&quot;baja al sincronizar&quot;| ServidorLocal[&quot;Servidor local&quot;]
+    B5 --&gt;|&quot;baja al sincronizar&quot;| ServidorLocal</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
 <section id="CLA-01"><header><p>03-clases.md · diseño objetivo o propuesta, sin implementación comprobada · HU-120, HU-131, HU-135, HU-140, HU-142, HU-162</p><h2>CLA-01. Salón y venta</h2><nav><a href="03-clases.md#cla-01">Explicación y escenarios</a><a href="png/CLA-01.png">PNG</a><a href="svg/CLA-01.svg">SVG</a><a href="fuentes/CLA-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/CLA-01.svg" alt="CLA-01. Salón y venta" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>classDiagram
     class Producto {
         codigo
@@ -521,7 +523,7 @@
     participant DB as PostgreSQL local
     participant API as Django nube
     participant PN as PostgreSQL nube
-    Note over K: cada X minutos, al cerrar caja o con Sincronizar ahora
+    Note over K: cada X horas, al cerrar caja o con Enviar ahora
     K-&gt;&gt;DB: lee hasta N filas sin confirmar, por secuencia
     K-&gt;&gt;API: POST lote, credencial del equipo, salud del servidor
     API-&gt;&gt;API: valida equipo y local
@@ -800,7 +802,7 @@
     API--&gt;&gt;Pag: categorías, productos, precios, agotados
     Pag--&gt;&gt;Cli: carta en su idioma, con selector
     Note over API,PN: solo lectura, sin datos de ventas ni del personal</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
-<section id="FUT-02"><header><p>09-version-2.md · diseño objetivo o propuesta, sin implementación comprobada · HU-320, HU-321, HU-322, HU-323, HU-324</p><h2>FUT-02. Stock de bebidas</h2><nav><a href="09-version-2.md#fut-02">Explicación y escenarios</a><a href="png/FUT-02.png">PNG</a><a href="svg/FUT-02.svg">SVG</a><a href="fuentes/FUT-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUT-02.svg" alt="FUT-02. Stock de bebidas" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+<section id="FUT-02"><header><p>09-version-2.md · diseño objetivo o propuesta, sin implementación comprobada · HU-320, HU-321, HU-322, HU-323, HU-324, HU-247</p><h2>FUT-02. Stock de bebidas</h2><nav><a href="09-version-2.md#fut-02">Explicación y escenarios</a><a href="png/FUT-02.png">PNG</a><a href="svg/FUT-02.svg">SVG</a><a href="fuentes/FUT-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUT-02.svg" alt="FUT-02. Stock de bebidas" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
     Compra[&quot;Ingreso de mercadería&quot;] --&gt;|&quot;suma&quot;| Mov[(&quot;Movimientos de stock&lt;br/&gt;solo agregar&quot;)]
     Venta[&quot;Comanda enviada&quot;] --&gt;|&quot;resta en la misma transacción&quot;| Mov
     Anul[&quot;Línea anulada&quot;] --&gt;|&quot;devuelve&quot;| Mov

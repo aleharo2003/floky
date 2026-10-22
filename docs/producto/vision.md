@@ -21,7 +21,7 @@ Un sistema de punto de venta y gestión para restaurantes, confiterías y bares.
 
 ## Cómo está pensado
 
-- **Local first** ([ADR-0001](../adr/0001-local-first.md)): cada local tiene un servidor con su base. La venta nunca sale de la red del local. La nube recibe una copia cada X minutos y al cerrar la caja.
+- **Local first** ([ADR-0001](../adr/0001-local-first.md)): cada local tiene un servidor con su base. La venta nunca sale de la red del local. La nube recibe una copia cada X horas y siempre al cerrar la caja.
 - **Un local es un tenant** ([ADR-0004](../adr/0004-tenant-por-local.md)): el mismo sistema sirve a muchos locales, cada uno aislado de los demás.
 - **Factura electrónica** ([ADR-0006](../adr/0006-arca-desde-el-servidor-local.md)): el servidor local pide el CAE a ARCA. El cobro no espera a ARCA.
 - **Impresión directa** ([ADR-0007](../adr/0007-impresion-escpos.md)) en impresoras térmicas ESC/POS.
@@ -34,7 +34,11 @@ Un sistema de punto de venta y gestión para restaurantes, confiterías y bares.
 | v1.x | Mejoras sobre lo anterior: pasar y unir mesas, comanda impresa en cocina, actualización masiva de precios, cuenta corriente de clientes |
 | v2 | Multilenguaje, menú QR público por local, stock (empezando por bebidas), mozos cargando pedidos desde el celular |
 
-Fuera de alcance por ahora: stock general, compras a proveedores, integración con plataformas de delivery.
+Fuera de alcance por ahora: stock general y compras a proveedores. La integración con plataformas de delivery se evalúa para v2.
+
+## Pensado para varios clientes
+
+El sistema se va a ofrecer a otros restaurantes, comedores y confiterías. Por eso cada local prende o apaga las funciones que usa (mesas numeradas, impresora de cocina, cajón de dinero, stock de bebidas, delivery), y los roles se arman con permisos, para poder sumar uno nuevo sin tocar el código.
 
 ## Cómo sabemos que funciona
 

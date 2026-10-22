@@ -21,6 +21,7 @@ Un ADR registra una decisión importante: el contexto, las opciones que se mirar
 | [0007](0007-impresion-escpos.md) | Impresión directa en ESC/POS desde el servidor local | Aceptada |
 | [0008](0008-entornos-hosting-ci-cd.md) | Entornos, hosting de bajo costo y CI/CD | Aceptada |
 | [0009](0009-analisis-estatico-seguridad.md) | Análisis estático de seguridad (SAST) en CI | Aceptada |
+| [0010](0010-carta-se-edita-en-la-nube.md) | La carta se edita en la nube y baja al local | Propuesta |
 
 ## Cómo escribir uno nuevo
 
