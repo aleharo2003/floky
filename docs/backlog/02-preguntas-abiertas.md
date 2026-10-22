@@ -7,8 +7,8 @@ Cada pregunta dice a quién hay que hacérsela y qué bloquea. Cuando se resuelv
 | ID | Pregunta | Bloquea |
 |---|---|---|
 | P-07 | Usa todos los medios de pago (efectivo, débito, crédito, QR, transferencia). ¿Cierra el posnet y la billetera de QR en cada turno, o una vez por día? De eso depende que la comparación por medio de pago se pueda hacer en cada cierre. | HU-224 |
-| P-08 | El sistema anterior registra algunas operaciones como "invitación" (consumos sin cobro) y marca las comandas con letras (C, F, L, X). ¿Qué significa cada una y cuáles cuentan como venta? Hace falta para migrar el historial y para que los reportes cierren con lo que el dueño ya conoce. | HU-226, HU-280 |
-| P-14 | ¿Cuándo vence el certificado de ARCA que usa hoy? El nuevo lo gestionamos nosotros junto con el dueño. | HU-160, HU-161 |
+| P-08 | El sistema anterior marca las comandas con letras (C, F, L, X). ¿Qué significa cada una y cuáles cuentan como venta? Hace falta para migrar el historial y para que los reportes cierren con lo que el dueño ya conoce. | HU-280 |
+| P-14 | ¿Cuándo vence el certificado de ARCA que usa hoy? El trámite del nuevo lo hace el equipo, con una delegación del dueño en ARCA (sin pedirle su clave fiscal). | HU-160, HU-161 |
 
 ## Con el contador de cada local
 
@@ -43,3 +43,4 @@ Cada pregunta dice a quién hay que hacérsela y qué bloquea. Cuando se resuelv
 | P-16 | ¿Usa delivery? | No, pero se puede ofrecer como función activable | E34, HU-247 |
 | P-18 | ¿Stock de bebidas en v2? | Sí, como función activable | E32, HU-247 |
 | P-21 | Mis finanzas, ¿borrar o anular? | Anular con motivo, como el resto del dinero | HU-211, HU-214 |
+| P-08 (parte) | ¿Qué son las operaciones "invitación" del sistema anterior? | Ventas que se cerraron sin factura. Equivalen a "finalizar sin comprobante" | HU-226, HU-280 |

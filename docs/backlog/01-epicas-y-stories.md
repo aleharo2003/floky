@@ -834,6 +834,8 @@ Como cajero, quiero terminar una venta cobrada sin emitir factura, para cerrar l
 - Dado una venta "sin comprobante", cuando alguien intenta facturarla después, entonces se rechaza.
 
 > A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.
+>
+> En el sistema anterior estas ventas aparecen como "invitación". Al migrar el historial (HU-280) se importan como ventas sin comprobante.
 
 ### HU-227. Rango de fechas en Mis finanzas y en el panel
 **Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `finanzas`, `reportes`

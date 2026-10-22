@@ -458,7 +458,9 @@ Diagramas: FUN-04 (docs/diagramas/)",High,mvp,must,backend,frontend,pos,caja,din
 - Dado el contador, cuando abre facturación, entonces estas ventas están en una lista aparte (fecha, medio de pago, total) y no suman a los totales facturados.
 - Dado una venta ""sin comprobante"", cuando alguien intenta facturarla después, entonces se rechaza.
 
-> A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.",High,mvp,must,backend,frontend,pos,fiscal,contador,,
+> A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.
+>
+> En el sistema anterior estas ventas aparecen como ""invitación"". Al migrar el historial (HU-280) se importan como ventas sin comprobante.",High,mvp,must,backend,frontend,pos,fiscal,contador,,
 227,1022,Story,HU-227. Rango de fechas en Mis finanzas y en el panel,"Como dueño, quiero un filtro desde/hasta con atajos, para mirar cualquier período y no solo meses enteros.
 
 - Dado Mis finanzas o el panel, cuando elijo hoy, esta semana (desde el lunes) o este mes, entonces la lista, los totales y el resumen siguen la elección.
