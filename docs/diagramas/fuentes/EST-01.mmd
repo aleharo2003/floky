@@ -1,0 +1,23 @@
+stateDiagram-v2
+    [*] --> Cobrada
+    state "Venta cobrada" as Cobrada
+    state "Pendiente de CAE" as Pendiente
+    state "En duda" as Duda
+    state "Facturada" as Facturada
+    state "Rechazada" as Rechazada
+    state "Sin comprobante" as SinComp
+    state "Anulación pendiente" as AnulPend
+    state "Anulada con nota de crédito" as Anulada
+    Cobrada --> Pendiente: F8 factura
+    Cobrada --> SinComp: F9 finalizar
+    Pendiente --> Facturada: ARCA aprueba
+    Pendiente --> Rechazada: ARCA rechaza
+    Pendiente --> Duda: sin respuesta
+    Duda --> Facturada: consulta encuentra el CAE
+    Duda --> Pendiente: consulta no lo encuentra
+    Rechazada --> Pendiente: reintento tras corregir
+    Facturada --> AnulPend: anular venta
+    AnulPend --> Anulada: nota de crédito aprobada
+    AnulPend --> Facturada: nota de crédito rechazada
+    SinComp --> [*]
+    Anulada --> [*]

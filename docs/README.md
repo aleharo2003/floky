@@ -15,7 +15,7 @@ Toda la documentación del sistema vive acá, junto al código, y se revisa en l
 | `producto/` | Visión, alcance y glosario |
 | `adr/` | Decisiones de arquitectura (ADR), numeradas y con estado |
 | `backlog/` | Épicas, stories y preguntas abiertas (próximo PR) |
-| `diagramas/` | Diagramas Mermaid con SVG, PNG y galería (próximo PR) |
+| `diagramas/` | Diagramas Mermaid con SVG, PNG y [galería](diagramas/galeria.html) |
 | `operacion/` | Runbooks: despliegue, vuelta atrás, backups (cuando existan) |
 
 ## Reglas para escribir documentación

@@ -1,0 +1,12 @@
+flowchart TD
+    A["Medir el sistema anterior en uso: línea base"] --> B["Copia actual de la base del sistema anterior"]
+    B --> C["Importar carta, mozos y clientes con CUIT"]
+    C --> D["Instalar servidor local y vincularlo"]
+    D --> E["Ensayo en paralelo<br/>el anterior factura, el nuevo en homologación"]
+    E --> F{"¿Servicio de prueba completo bien?"}
+    F -->|"no"| G["Corregir y repetir el ensayo"] --> E
+    F -->|"sí"| H["Día del corte, antes de abrir"]
+    H --> I["Último número del sistema anterior por tipo y punto de venta"]
+    I --> J["Sistema nuevo pasa a ARCA producción<br/>toma el siguiente número"]
+    J --> K["Acta del corte"]
+    K --> L["Primeros servicios con el equipo disponible<br/>sistema anterior instalado sin facturar"]

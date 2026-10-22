@@ -1,0 +1,12 @@
+flowchart TD
+    A["Email y contraseña"] --> B{"¿Válidos?"}
+    B -->|"no"| C["Rechazo sin decir cuál falló<br/>auditado"]
+    B -->|"sí"| D{"¿Más de un local?"}
+    D -->|"sí"| E["Elegir local"] --> F
+    D -->|"no"| F["Facturación del mes"]
+    F --> G["Filtro de fechas o períodos rápidos"]
+    G --> H["Comprobantes y totales por medio y tipo"]
+    H --> I["Ventas sin comprobante en lista aparte"]
+    F --> J["Datos al HH:MM del último envío"]
+    F --> K{"¿Intenta otra ruta?"}
+    K -->|"sí"| L["Vuelve a facturación, 403 en la API"]

@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant O as Dueño
+    participant P as Portal
+    participant API as Django nube
+    participant S as Servidor local
+    participant U as Actualizador local
+    O->>P: generar código de vinculación
+    P->>API: crear código de un solo uso
+    API-->>O: código, vence en minutos
+    O->>S: ingresa el código en la instalación
+    S->>API: canjea código
+    API-->>S: credencial del equipo
+    S->>S: guarda credencial con DPAPI
+    Note over S,API: más adelante, en cada sincronización
+    API-->>S: versión disponible en su canal
+    S->>U: hay versión nueva
+    U->>U: espera caja cerrada
+    U->>U: descarga, verifica firma, backup
+    U->>S: detiene, migra, inicia
+    alt chequeo de salud bien
+        U->>API: versión nueva instalada
+    else falla
+        U->>S: vuelve a la versión anterior
+        U->>API: actualización fallida, con el error
+    end

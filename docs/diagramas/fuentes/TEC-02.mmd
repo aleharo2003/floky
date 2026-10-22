@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant K as Worker fiscal local
+    participant DB as PostgreSQL local
+    participant AA as ARCA WSAA
+    participant AF as ARCA WSFEv1
+    K->>DB: toma el próximo trabajo fiscal con bloqueo de fila
+    K->>K: ticket de acceso vigente en caché
+    opt ticket vencido
+        K->>AA: LoginCms firmado con el certificado del local
+        AA-->>K: token y sign, válidos por horas
+    end
+    K->>AF: FECompUltimoAutorizado
+    AF-->>K: último número
+    K->>DB: reserva número siguiente
+    K->>AF: FECAESolicitar con CondicionIVAReceptorId
+    alt aprobado
+        AF-->>K: CAE y vencimiento
+        K->>DB: BEGIN
+        K->>DB: comprobante autorizado, venta facturada
+        K->>DB: trabajo de impresión de la factura con QR
+        K->>DB: evento, auditoría y outbox
+        K->>DB: COMMIT
+    else rechazado
+        AF-->>K: errores y observaciones
+        K->>DB: venta pendiente con motivo
+    else sin respuesta
+        K->>DB: en duda, ver TEC-03
+    end

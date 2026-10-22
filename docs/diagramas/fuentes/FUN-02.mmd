@@ -1,0 +1,18 @@
+flowchart TD
+    A["F2: elegir mesa"] --> B{"¿Mesa libre?"}
+    B -->|"sí"| C["Comensales y mozo"] --> D
+    B -->|"no"| D["Comanda de la mesa"]
+    D --> E["Escribir código, cantidad o nombre"]
+    E --> F{"¿Código existe?"}
+    F -->|"no"| G["Aviso y sonido, campo limpio"] --> E
+    F -->|"sí"| H{"¿Tiene aclaraciones?"}
+    H -->|"sí"| I["Selector numerado, Enter o Esc"] --> J
+    H -->|"no"| J["Línea agregada sin enviar"]
+    J --> K{"¿Más productos?"}
+    K -->|"sí"| E
+    K -->|"no"| L["Enviar a cocina"]
+    L --> M["Comanda guardada, ticket a cocina"]
+    M --> N{"¿Imprimió?"}
+    N -->|"no"| O["Aviso, se puede reimprimir"]
+    N -->|"sí"| P["Volver al salón"]
+    O --> P

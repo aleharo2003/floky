@@ -12,7 +12,9 @@ Si una palabra significa una cosa en una reunión y otra en el código, tarde o 
 | Mostrador | Venta sin mesa | `counter` |
 | Comanda | Lo que se pidió en una mesa o en mostrador. Tiene ítems | `Order` |
 | Precuenta | Detalle impreso de lo consumido antes de cobrar. No es comprobante fiscal | `PreBill` |
-| Cobro | El pago de una comanda, con uno o varios medios de pago | `Payment` |
+| Venta | Lo que se cobra al cerrar una mesa o un pedido de mostrador. Puede tener factura, quedar pendiente de CAE o cerrarse sin comprobante | `Sale` |
+| Pago | Cada parte de un cobro con un medio de pago (efectivo, tarjeta, QR). Una venta puede tener uno o dos | `Payment` |
+| Comprobante | Factura o nota de crédito autorizada por ARCA | `FiscalDocument` |
 | Turno de caja | Período entre la apertura y el cierre de la caja de un cajero | `CashShift` |
 | Arqueo | Comparación entre lo que el sistema espera en caja y lo que se cuenta al cerrar | `CashCount` |
 | Mis finanzas | Ingresos y egresos que el dueño anota fuera de la caja (alquiler, sueldos, proveedores). Reemplaza a los cuadernos de papel. Solo la ve el dueño | `finances` |

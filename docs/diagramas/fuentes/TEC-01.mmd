@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant C as Cajero
+    participant W as Caja React
+    participant D as Django local
+    participant DB as PostgreSQL local
+    participant K as Worker local
+    participant H as Impresora ESC/POS
+    C->>W: confirma pagos (F6 y Enter)
+    W->>D: POST cobrar, con clave de idempotencia
+    D->>D: permisos, turno abierto, recalcula total
+    D->>DB: BEGIN
+    D->>DB: venta, pagos, evento, auditoría
+    D->>DB: trabajo fiscal y trabajo de impresión
+    D->>DB: fila en sync_outbox
+    D->>DB: COMMIT
+    D-->>W: venta cobrada, estado fiscal pendiente
+    W-->>C: mesa libre, puede seguir atendiendo
+    K->>DB: toma trabajo de impresión
+    K->>H: ticket ESC/POS
+    alt impresora responde
+        K->>DB: impreso
+    else sin papel o apagada
+        K->>DB: fallido, aviso en pantalla
+    end
+    Note over D,DB: nada de este camino sale de la red del local

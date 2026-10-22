@@ -1,0 +1,15 @@
+flowchart LR
+    S["Reporte de salud del servidor local<br/>viene en cada lote"] --> Eval{"Evaluación en la nube"}
+    Cron["Chequeo programado en la nube"] --> Eval
+    Eval -->|"sin lotes hace más del umbral"| A1["Sync atrasada"]
+    Eval -->|"facturas pendientes viejas"| A2["CAE pendientes"]
+    Eval -->|"faltan 30 días"| A3["Certificado por vencer"]
+    Eval -->|"backup local fallido"| A4["Backup local"]
+    Eval -->|"actualización revertida"| A5["Versión fallida"]
+    Eval -->|"conciliación diaria no cierra"| A6["Diferencia local y nube"]
+    A1 --> Mail["Email al dueño y al equipo"]
+    A2 --> Mail
+    A3 --> Mail
+    A4 --> Mail
+    A5 --> Mail
+    A6 --> Mail

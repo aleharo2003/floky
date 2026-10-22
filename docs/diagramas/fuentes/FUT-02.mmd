@@ -1,0 +1,8 @@
+flowchart LR
+    Compra["Ingreso de mercadería"] -->|"suma"| Mov[("Movimientos de stock<br/>solo agregar")]
+    Venta["Comanda enviada"] -->|"resta en la misma transacción"| Mov
+    Anul["Línea anulada"] -->|"devuelve"| Mov
+    Inv["Conteo de inventario"] -->|"ajuste con motivo"| Mov
+    Mov --> Exist["Existencia por producto<br/>suma de movimientos"]
+    Exist --> Min{"¿Debajo del mínimo?"}
+    Min -->|"sí"| Alerta["Aparece en el panel del dueño"]

@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant K as Worker fiscal local
+    participant DB as PostgreSQL local
+    participant AF as ARCA WSFEv1
+    Note over K,DB: trabajo en duda, número N reservado
+    loop hasta que haya conexión, con espera creciente
+        K->>AF: FECompConsultar tipo, punto de venta, N
+    end
+    alt ARCA tiene el comprobante N
+        AF-->>K: CAE de N
+        K->>DB: guarda ese CAE, no vuelve a pedir
+    else ARCA no lo tiene
+        AF-->>K: no existe
+        K->>AF: FECompUltimoAutorizado
+        AF-->>K: último es N-1
+        K->>AF: FECAESolicitar con N
+        AF-->>K: CAE
+        K->>DB: comprobante autorizado
+    end
+    Note over K,AF: sin internet por horas, las ventas quedan pendientes y el cliente recibe ticket provisorio

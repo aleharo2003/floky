@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Cli as Cliente del local
+    participant Cel as Celular
+    participant Pag as Carta pública en la nube
+    participant API as Django nube
+    participant PN as PostgreSQL nube
+    Cli->>Cel: escanea el QR de la mesa
+    Cel->>Pag: abre la URL del local
+    Pag->>API: GET carta pública del local, idioma del navegador
+    API->>PN: productos activos de ese local, traducción si existe
+    API-->>Pag: categorías, productos, precios, agotados
+    Pag-->>Cli: carta en su idioma, con selector
+    Note over API,PN: solo lectura, sin datos de ventas ni del personal

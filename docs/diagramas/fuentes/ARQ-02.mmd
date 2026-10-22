@@ -1,0 +1,24 @@
+flowchart TB
+    subgraph LocalRed["Frontera: red del local"]
+        Navegador["Navegador en la PC de caja<br/>(a futuro, celulares)"]
+        subgraph PC["PC del local, servicios de Windows"]
+            Django["Django en modo local<br/>API de la caja"]
+            Worker["Worker local<br/>ARCA, impresión y envío"]
+            PGL[("PostgreSQL local<br/>fuente de verdad de la operación")]
+        end
+        Hasar["Hasar P-250N<br/>ESC/POS por USB o red"]
+    end
+    subgraph Nube["Frontera: nube"]
+        Portal["Portal React<br/>panel, contador, Mis finanzas"]
+        API["Django en modo nube<br/>ingesta, lectura, finanzas"]
+        PGN[("PostgreSQL nube<br/>réplica por local y finanzas")]
+    end
+    ARCA["ARCA<br/>WSAA y WSFEv1"]
+    Navegador -->|"HTTP en la red local, PIN"| Django
+    Django --> PGL
+    Worker --> PGL
+    Worker -->|"ESC/POS"| Hasar
+    Worker -->|"HTTPS con certificado del local"| ARCA
+    Worker -->|"HTTPS saliente con credencial del equipo"| API
+    Portal -->|"HTTPS, email y contraseña"| API
+    API --> PGN

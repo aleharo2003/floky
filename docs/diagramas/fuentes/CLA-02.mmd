@@ -1,0 +1,48 @@
+classDiagram
+    class TurnoCaja {
+        cajero
+        fondoInicial
+        efectivoEsperado
+        efectivoContado
+        diferencia
+        abrir(fondo)
+        cerrar(conteo)
+    }
+    class MovimientoCaja {
+        tipo
+        medio
+        importe
+        motivo
+    }
+    class Evento {
+        hora
+        usuario
+        accion
+        sesionMesa
+        venta
+        turno
+    }
+    class CorreccionPago {
+        medioAnterior
+        medioNuevo
+        motivo
+        posteriorAlCierre
+    }
+    class MovimientoFinanzas {
+        fecha
+        tipo
+        importe
+        categoria
+        local opcional
+    }
+    class CategoriaFinanzas {
+        nombre
+        tipo
+        delNegocio
+    }
+    TurnoCaja "1" --> "*" MovimientoCaja
+    TurnoCaja "1" --> "*" Evento
+    CorreccionPago ..> Evento : genera
+    MovimientoFinanzas "*" --> "1" CategoriaFinanzas
+    note for MovimientoFinanzas "Vive solo en la nube. Solo el dueño, con segunda clave."
+    note for Evento "Solo agregar. Se replica tal cual."

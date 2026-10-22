@@ -1,0 +1,15 @@
+stateDiagram-v2
+    state "Sin turno" as Sin
+    state "Abierto" as Abierto
+    state "En arqueo" as Arqueo
+    state "Cerrado" as Cerrado
+    state "Cerrado y enviado" as Enviado
+    [*] --> Sin
+    Sin --> Abierto: fondo inicial
+    Abierto --> Abierto: ventas, movimientos, correcciones
+    Abierto --> Arqueo: F10
+    Arqueo --> Abierto: Esc
+    Arqueo --> Cerrado: F10 de nuevo
+    Cerrado --> Enviado: lote confirmado por la nube
+    Cerrado --> Cerrado: corrección del dueño como ajuste posterior
+    Enviado --> Sin: listo para el próximo turno

@@ -1,0 +1,13 @@
+stateDiagram-v2
+    state "Libre" as Libre
+    state "Ocupada" as Ocupada
+    state "Con precuenta" as Precuenta
+    state "Cobrada" as Cobrada
+    [*] --> Libre
+    Libre --> Ocupada: abrir con caja abierta
+    Ocupada --> Ocupada: enviar comanda o anular línea
+    Ocupada --> Precuenta: F4 con todo enviado
+    Precuenta --> Ocupada: agregar productos
+    Precuenta --> Cobrada: cobro confirmado
+    Ocupada --> Libre: pasar a otra mesa
+    Cobrada --> Libre: mesa liberada

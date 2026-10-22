@@ -1,0 +1,10 @@
+flowchart LR
+    Mesa["Sesión de mesa<br/>o mostrador"] -->|"una o varias"| Comanda["Comanda enviada<br/>líneas con precio copiado"]
+    Comanda -->|"al cobrar se cierra en"| Venta["Venta<br/>total calculado por el servidor"]
+    Venta -->|"uno o dos"| Pago["Pago<br/>medio e importe"]
+    Pago -.->|"si se equivocó el medio"| Correccion["Corrección<br/>antes, después y motivo"]
+    Venta -->|"0 o 1"| Factura["Comprobante fiscal<br/>B o A, con CAE"]
+    Venta -->|"o"| SinComp["Sin comprobante<br/>F9, lista aparte"]
+    Factura -.->|"si se anula"| NC["Nota de crédito"]
+    Turno["Turno de caja"] -->|"agrupa"| Venta
+    Turno -->|"agrupa"| Mov["Movimientos de caja<br/>retiros, aportes, gastos del mozo"]

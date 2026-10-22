@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant K as Worker local
+    participant DB as PostgreSQL local
+    participant API as Django nube
+    participant PN as PostgreSQL nube
+    Note over K: cada X minutos, al cerrar caja o con Sincronizar ahora
+    K->>DB: lee hasta N filas sin confirmar, por secuencia
+    K->>API: POST lote, credencial del equipo, salud del servidor
+    API->>API: valida equipo y local
+    API->>PN: BEGIN
+    loop cada evento del lote
+        API->>PN: upsert si la versión es mayor
+    end
+    API->>PN: sync_batch con aplicados e ignorados
+    API->>PN: COMMIT
+    API-->>K: secuencia aplicada y configuración vigente
+    K->>DB: marca confirmado hasta esa secuencia
+    K->>K: aplica configuración nueva si cambió
+    alt error de red o 5xx
+        K->>K: reintenta con espera creciente, nada se borra
+    end

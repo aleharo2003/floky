@@ -1,0 +1,810 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagramas del sistema</title><style>html{scroll-behavior:smooth}body{margin:0;background:#f3f5f8;color:#1d2d40;font:16px/1.55 Arial,sans-serif}main{max-width:1280px;margin:auto;padding:32px 24px}h1,h2{line-height:1.2}h1{font-size:32px}h2{font-size:24px}a{color:#15599b}p{max-width:85ch}#indice{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 24px;margin:24px 0 48px}#indice a{padding:8px;background:#fff;text-decoration:none;border-radius:6px}section{background:#fff;border-radius:10px;margin:0 0 32px;overflow:hidden;scroll-margin-top:16px}header{padding:20px 24px;background:#eaf0f7}header p{font-size:13px;margin:0}header nav{display:flex;gap:16px;flex-wrap:wrap}.drawing{padding:24px;overflow:auto}.drawing img{display:block;max-width:100%;height:auto;margin:auto}details{padding:12px 24px}pre{overflow:auto;font-size:13px}summary{cursor:pointer}.back{display:inline-block;margin:8px 24px 24px}a:focus-visible,summary:focus-visible{outline:3px solid #d18a11;outline-offset:3px}@media(max-width:600px){main{padding:20px 12px}h1{font-size:27px}.drawing{padding:12px}header{padding:16px}}</style></head><body><main id="inicio"><h1>Diagramas del sistema</h1><p>34 diagramas con explicaciones, fuentes editables e imágenes para adjuntar a stories. Arquitectura objetivo y modelos propuestos; todavía no representan código implementado. Los pendientes y escenarios están en los documentos enlazados.</p><p><a href="README.md">Índice y mapa de stories</a> · <a href="guia-para-aprender-y-ensenar.md">Guía didáctica</a> · <a href="../backlog/01-epicas-y-stories.md">Backlog</a> · <a href="../adr/">Decisiones (ADR)</a></p><nav id="indice" aria-label="Diagramas"><a href="#ARQ-01">ARQ-01 · Contexto y actores</a>
+<a href="#ARQ-02">ARQ-02 · Contenedores: qué corre en el local y qué en la nube</a>
+<a href="#ARQ-03">ARQ-03 · Un código Django, dos modos</a>
+<a href="#ARQ-04">ARQ-04 · Locales como tenants</a>
+<a href="#ARQ-05">ARQ-05 · Entornos: desarrollo, pruebas y producción</a>
+<a href="#DOM-01">DOM-01 · Mapa de capacidades: MVP y v2</a>
+<a href="#DOM-02">DOM-02 · Del pedido al comprobante</a>
+<a href="#DOM-03">DOM-03 · ¿De quién es cada dato?</a>
+<a href="#CLA-01">CLA-01 · Salón y venta</a>
+<a href="#CLA-02">CLA-02 · Caja, trazabilidad y Mis finanzas</a>
+<a href="#DAT-01">DAT-01 · Base local: núcleo de venta y outbox</a>
+<a href="#DAT-02">DAT-02 · Base en la nube: locales, membresías, réplica y finanzas</a>
+<a href="#TEC-01">TEC-01 · Cobrar e imprimir sin esperar a ARCA</a>
+<a href="#TEC-02">TEC-02 · Emitir la factura con CAE</a>
+<a href="#TEC-03">TEC-03 · Reintento seguro: nunca dos facturas, nunca un número salteado</a>
+<a href="#TEC-04">TEC-04 · Sincronización por outbox</a>
+<a href="#TEC-05">TEC-05 · Del pull request a producción</a>
+<a href="#TEC-06">TEC-06 · Vincular el servidor local y actualizarlo a distancia</a>
+<a href="#FUN-01">FUN-01 · Ingresar con PIN y abrir la caja</a>
+<a href="#FUN-02">FUN-02 · Abrir una mesa y cargar la comanda por código</a>
+<a href="#FUN-03">FUN-03 · Cobrar, facturar o finalizar sin comprobante</a>
+<a href="#FUN-04">FUN-04 · Cerrar la caja</a>
+<a href="#FUN-05">FUN-05 · Anular una venta</a>
+<a href="#FUN-06">FUN-06 · Mis finanzas: cargar un movimiento</a>
+<a href="#FUN-07">FUN-07 · El contador consulta la facturación</a>
+<a href="#EST-01">EST-01 · Comprobante fiscal</a>
+<a href="#EST-02">EST-02 · Sesión de mesa</a>
+<a href="#EST-03">EST-03 · Turno de caja</a>
+<a href="#EST-04">EST-04 · Fila del outbox y lote de sincronización</a>
+<a href="#OPS-01">OPS-01 · Del sistema anterior al nuevo</a>
+<a href="#OPS-02">OPS-02 · Backups y restauración</a>
+<a href="#OPS-03">OPS-03 · Alertas operativas</a>
+<a href="#FUT-01">FUT-01 · Menú QR multilenguaje</a>
+<a href="#FUT-02">FUT-02 · Stock de bebidas</a></nav><section id="ARQ-01"><header><p>01-arquitectura.md · diseño objetivo o propuesta, sin implementación comprobada · HU-110, HU-140, HU-162, HU-181, HU-200, HU-211</p><h2>ARQ-01. Contexto y actores</h2><nav><a href="01-arquitectura.md#arq-01">Explicación y escenarios</a><a href="png/ARQ-01.png">PNG</a><a href="svg/ARQ-01.svg">SVG</a><a href="fuentes/ARQ-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/ARQ-01.svg" alt="ARQ-01. Contexto y actores" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TB
+    Mozo[&quot;Mozo&lt;br/&gt;abre mesas y carga comandas&quot;]
+    Cajero[&quot;Cajero&lt;br/&gt;cobra, factura y cierra la caja&quot;]
+    Dueno[&quot;Dueño&lt;br/&gt;configura, mira el negocio&lt;br/&gt;y lleva sus finanzas&quot;]
+    Contador[&quot;Contador&lt;br/&gt;solo facturación, solo lectura&quot;]
+    subgraph Sistema[&quot;Sistema nuevo&quot;]
+        direction LR
+        Local[&quot;En el local&lt;br/&gt;vender aunque no haya internet&quot;]
+        Nube[&quot;En la nube&lt;br/&gt;ver desde cualquier lugar&quot;]
+        Local --&gt;|&quot;copia cada X&lt;br/&gt;y al cerrar caja&quot;| Nube
+    end
+    ARCA[&quot;ARCA&lt;br/&gt;autoriza facturas con CAE&quot;]
+    Impresora[&quot;Impresora térmica ESC/POS&lt;br/&gt;tickets y facturas&quot;]
+    Cliente[&quot;Cliente del local&lt;br/&gt;recibe su comprobante&quot;]
+    Mozo --&gt; Local
+    Cajero --&gt; Local
+    Dueno --&gt; Local
+    Dueno --&gt; Nube
+    Contador --&gt; Nube
+    Local ---&gt;|&quot;pide CAE&lt;br/&gt;cuando hay conexión&quot;| ARCA
+    Local --&gt;|&quot;imprime&quot;| Impresora
+    Impresora --&gt; Cliente</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="ARQ-02"><header><p>01-arquitectura.md · diseño objetivo o propuesta, sin implementación comprobada · HU-232, HU-250, HU-251, HU-252, HU-103</p><h2>ARQ-02. Contenedores: qué corre en el local y qué en la nube</h2><nav><a href="01-arquitectura.md#arq-02">Explicación y escenarios</a><a href="png/ARQ-02.png">PNG</a><a href="svg/ARQ-02.svg">SVG</a><a href="fuentes/ARQ-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/ARQ-02.svg" alt="ARQ-02. Contenedores: qué corre en el local y qué en la nube" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TB
+    subgraph LocalRed[&quot;Frontera: red del local&quot;]
+        Navegador[&quot;Navegador en la PC de caja&lt;br/&gt;(a futuro, celulares)&quot;]
+        subgraph PC[&quot;PC del local, servicios de Windows&quot;]
+            Django[&quot;Django en modo local&lt;br/&gt;API de la caja&quot;]
+            Worker[&quot;Worker local&lt;br/&gt;ARCA, impresión y envío&quot;]
+            PGL[(&quot;PostgreSQL local&lt;br/&gt;fuente de verdad de la operación&quot;)]
+        end
+        Hasar[&quot;Hasar P-250N&lt;br/&gt;ESC/POS por USB o red&quot;]
+    end
+    subgraph Nube[&quot;Frontera: nube&quot;]
+        Portal[&quot;Portal React&lt;br/&gt;panel, contador, Mis finanzas&quot;]
+        API[&quot;Django en modo nube&lt;br/&gt;ingesta, lectura, finanzas&quot;]
+        PGN[(&quot;PostgreSQL nube&lt;br/&gt;réplica por local y finanzas&quot;)]
+    end
+    ARCA[&quot;ARCA&lt;br/&gt;WSAA y WSFEv1&quot;]
+    Navegador --&gt;|&quot;HTTP en la red local, PIN&quot;| Django
+    Django --&gt; PGL
+    Worker --&gt; PGL
+    Worker --&gt;|&quot;ESC/POS&quot;| Hasar
+    Worker --&gt;|&quot;HTTPS con certificado del local&quot;| ARCA
+    Worker --&gt;|&quot;HTTPS saliente con credencial del equipo&quot;| API
+    Portal --&gt;|&quot;HTTPS, email y contraseña&quot;| API
+    API --&gt; PGN</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="ARQ-03"><header><p>01-arquitectura.md · diseño objetivo o propuesta, sin implementación comprobada · HU-100, HU-104, HU-232</p><h2>ARQ-03. Un código Django, dos modos</h2><nav><a href="01-arquitectura.md#arq-03">Explicación y escenarios</a><a href="png/ARQ-03.png">PNG</a><a href="svg/ARQ-03.svg">SVG</a><a href="fuentes/ARQ-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/ARQ-03.svg" alt="ARQ-03. Un código Django, dos modos" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TB
+    subgraph Front[&quot;frontend: React&quot;]
+        Pantallas[&quot;Pantallas&quot;]
+        Contratos[&quot;capa de servicios&lt;br/&gt;contratos tipados&quot;]
+        Pantallas --&gt; Contratos
+    end
+    subgraph Back[&quot;backend: un proyecto Django&quot;]
+        Vistas[&quot;Vistas DRF&lt;br/&gt;serializers y permisos&quot;]
+        Servicios[&quot;Servicios de dominio&lt;br/&gt;cobrar, cerrar caja, facturar&quot;]
+        Repos[&quot;Modelos y consultas&quot;]
+        Vistas --&gt; Servicios --&gt; Repos
+        subgraph SoloLocal[&quot;solo FLOKY_MODE=local&quot;]
+            Fiscal[&quot;fiscal: worker ARCA&quot;]
+            Impresion[&quot;printing: ESC/POS&quot;]
+            Emisor[&quot;sync_sender: outbox&quot;]
+        end
+        subgraph SoloNube[&quot;solo FLOKY_MODE=cloud&quot;]
+            Receptor[&quot;sync_receiver: ingesta&quot;]
+            Panel[&quot;dashboard y accountant&quot;]
+            Finanzas[&quot;finances&quot;]
+        end
+        Servicios --&gt; Fiscal
+        Servicios --&gt; Emisor
+        Servicios --&gt; Impresion
+        Receptor --&gt; Repos
+        Panel --&gt; Repos
+        Finanzas --&gt; Repos
+    end
+    Contratos --&gt;|&quot;HTTP JSON&quot;| Vistas</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="ARQ-04"><header><p>01-arquitectura.md · diseño objetivo o propuesta, sin implementación comprobada · HU-240, HU-241, HU-243, HU-200, HU-210</p><h2>ARQ-04. Locales como tenants</h2><nav><a href="01-arquitectura.md#arq-04">Explicación y escenarios</a><a href="png/ARQ-04.png">PNG</a><a href="svg/ARQ-04.svg">SVG</a><a href="fuentes/ARQ-04.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/ARQ-04.svg" alt="ARQ-04. Locales como tenants" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    Lucia[&quot;Usuaria: Lucía, dueña&quot;]
+    Contador[&quot;Usuario: Marcos, contador&quot;]
+    subgraph Membresias[&quot;Membresías&quot;]
+        M1[&quot;Lucía · Local Centro · dueña&quot;]
+        M2[&quot;Lucía · Local Norte · dueña&quot;]
+        M3[&quot;Marcos · Local Centro · contador&quot;]
+    end
+    subgraph Datos[&quot;Datos en la nube, cada fila con tenant_id&quot;]
+        L1[(&quot;Local Centro&lt;br/&gt;ventas, comprobantes, caja&quot;)]
+        L2[(&quot;Local Norte&lt;br/&gt;ventas, comprobantes, caja&quot;)]
+        Fin[(&quot;Mis finanzas de Lucía&lt;br/&gt;tenant_id opcional&quot;)]
+    end
+    Lucia --&gt; M1 --&gt; L1
+    Lucia --&gt; M2 --&gt; L2
+    Contador --&gt; M3 --&gt;|&quot;solo comprobantes&quot;| L1
+    Lucia --&gt;|&quot;segunda clave&quot;| Fin</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="ARQ-05"><header><p>01-arquitectura.md · diseño objetivo o propuesta, sin implementación comprobada · HU-231, HU-234, HU-235, HU-236</p><h2>ARQ-05. Entornos: desarrollo, pruebas y producción</h2><nav><a href="01-arquitectura.md#arq-05">Explicación y escenarios</a><a href="png/ARQ-05.png">PNG</a><a href="svg/ARQ-05.svg">SVG</a><a href="fuentes/ARQ-05.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/ARQ-05.svg" alt="ARQ-05. Entornos: desarrollo, pruebas y producción" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    subgraph Dev[&quot;Desarrollo: PC de cada uno&quot;]
+        DC[&quot;Docker Compose&lt;br/&gt;Django local + Django nube&lt;br/&gt;2 PostgreSQL + Vite&quot;]
+        DA[&quot;ARCA: doble o homologación&quot;]
+    end
+    subgraph Pru[&quot;Pruebas&quot;]
+        PL[&quot;Servidor local de prueba&lt;br/&gt;canal pruebas&quot;]
+        PN[&quot;Nube de pruebas&lt;br/&gt;Cloud Run + Neon + Pages&quot;]
+        PA[&quot;ARCA homologación&quot;]
+    end
+    subgraph Prod[&quot;Producción&quot;]
+        RL[&quot;Servidor del local&lt;br/&gt;canal estable&quot;]
+        RN[&quot;Nube de producción&lt;br/&gt;Cloud Run + Neon + Pages&quot;]
+        RA[&quot;ARCA producción&quot;]
+    end
+    GH[&quot;GitHub Actions&quot;]
+    DC --&gt;|&quot;pull request&quot;| GH
+    GH --&gt;|&quot;merge a main&quot;| PL
+    GH --&gt;|&quot;merge a main&quot;| PN
+    GH --&gt;|&quot;tag y aprobación&quot;| RL
+    GH --&gt;|&quot;tag y aprobación&quot;| RN
+    PL --&gt; PA
+    RL --&gt; RA</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="DOM-01"><header><p>02-dominio.md · diseño objetivo o propuesta, sin implementación comprobada · HU-132, HU-140, HU-162, HU-211, HU-261, HU-310, HU-320, HU-330</p><h2>DOM-01. Mapa de capacidades: MVP y v2</h2><nav><a href="02-dominio.md#dom-01">Explicación y escenarios</a><a href="png/DOM-01.png">PNG</a><a href="svg/DOM-01.svg">SVG</a><a href="fuentes/DOM-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/DOM-01.svg" alt="DOM-01. Mapa de capacidades: MVP y v2" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TB
+    subgraph MVP[&quot;MVP: reemplazar el sistema anterior&quot;]
+        Salon[&quot;Salón y comandas&quot;]
+        Cobro[&quot;Cobro y caja&quot;]
+        Fact[&quot;Facturación ARCA&quot;]
+        Imp[&quot;Impresión&quot;]
+        Traz[&quot;Trazabilidad del turno&quot;]
+        Sync[&quot;Sincronización&quot;]
+        Panel[&quot;Panel del dueño&quot;]
+        Cont[&quot;Vista del contador&quot;]
+        Fin[&quot;Mis finanzas&quot;]
+        Salon --&gt; Cobro --&gt; Fact --&gt; Imp
+        Cobro --&gt; Traz
+        Cobro --&gt; Sync --&gt; Panel
+        Sync --&gt; Cont
+        Fin -.-&gt; Panel
+    end
+    subgraph V2[&quot;v2&quot;]
+        I18n[&quot;Multilenguaje&quot;]
+        QR[&quot;Menú QR&quot;]
+        Stock[&quot;Stock de bebidas&quot;]
+        Cel[&quot;Pedidos desde celulares&quot;]
+    end
+    Salon -.-&gt; Cel
+    Salon -.-&gt; Stock
+    I18n -.-&gt; QR
+    Sync -.-&gt; QR</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="DOM-02"><header><p>02-dominio.md · diseño objetivo o propuesta, sin implementación comprobada · HU-135, HU-140, HU-142, HU-162, HU-165, HU-226, HU-223</p><h2>DOM-02. Del pedido al comprobante</h2><nav><a href="02-dominio.md#dom-02">Explicación y escenarios</a><a href="png/DOM-02.png">PNG</a><a href="svg/DOM-02.svg">SVG</a><a href="fuentes/DOM-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/DOM-02.svg" alt="DOM-02. Del pedido al comprobante" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    Mesa[&quot;Sesión de mesa&lt;br/&gt;o mostrador&quot;] --&gt;|&quot;una o varias&quot;| Comanda[&quot;Comanda enviada&lt;br/&gt;líneas con precio copiado&quot;]
+    Comanda --&gt;|&quot;al cobrar se cierra en&quot;| Venta[&quot;Venta&lt;br/&gt;total calculado por el servidor&quot;]
+    Venta --&gt;|&quot;uno o dos&quot;| Pago[&quot;Pago&lt;br/&gt;medio e importe&quot;]
+    Pago -.-&gt;|&quot;si se equivocó el medio&quot;| Correccion[&quot;Corrección&lt;br/&gt;antes, después y motivo&quot;]
+    Venta --&gt;|&quot;0 o 1&quot;| Factura[&quot;Comprobante fiscal&lt;br/&gt;B o A, con CAE&quot;]
+    Venta --&gt;|&quot;o&quot;| SinComp[&quot;Sin comprobante&lt;br/&gt;F9, lista aparte&quot;]
+    Factura -.-&gt;|&quot;si se anula&quot;| NC[&quot;Nota de crédito&quot;]
+    Turno[&quot;Turno de caja&quot;] --&gt;|&quot;agrupa&quot;| Venta
+    Turno --&gt;|&quot;agrupa&quot;| Mov[&quot;Movimientos de caja&lt;br/&gt;retiros, aportes, gastos del mozo&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="DOM-03"><header><p>02-dominio.md · diseño objetivo o propuesta, sin implementación comprobada · HU-120, HU-112, HU-243, HU-211, HU-255, HU-260</p><h2>DOM-03. ¿De quién es cada dato?</h2><nav><a href="02-dominio.md#dom-03">Explicación y escenarios</a><a href="png/DOM-03.png">PNG</a><a href="svg/DOM-03.svg">SVG</a><a href="fuentes/DOM-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/DOM-03.svg" alt="DOM-03. ¿De quién es cada dato?" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    subgraph EscribeLocal[&quot;Se escribe en el local&quot;]
+        A1[&quot;Salón, comandas, ventas, pagos&quot;]
+        A2[&quot;Caja, comprobantes, eventos&quot;]
+        A3[&quot;Carta, mesas, personal con PIN&quot;]
+    end
+    subgraph EscribeNube[&quot;Se escribe en la nube&quot;]
+        B1[&quot;Locales y membresías&quot;]
+        B2[&quot;Usuarios con email: dueño y contador&quot;]
+        B3[&quot;Mis finanzas&quot;]
+        B4[&quot;Configuración del servidor local&quot;]
+    end
+    EscribeLocal --&gt;|&quot;sube por el outbox&quot;| Replica[(&quot;Réplica de lectura en la nube&quot;)]
+    B4 --&gt;|&quot;baja al sincronizar&quot;| ServidorLocal[&quot;Servidor local&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="CLA-01"><header><p>03-clases.md · diseño objetivo o propuesta, sin implementación comprobada · HU-120, HU-131, HU-135, HU-140, HU-142, HU-162</p><h2>CLA-01. Salón y venta</h2><nav><a href="03-clases.md#cla-01">Explicación y escenarios</a><a href="png/CLA-01.png">PNG</a><a href="svg/CLA-01.svg">SVG</a><a href="fuentes/CLA-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/CLA-01.svg" alt="CLA-01. Salón y venta" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>classDiagram
+    class Producto {
+        codigo
+        nombre
+        precio
+        alicuotaIva
+        activo
+    }
+    class SesionMesa {
+        mesa
+        mozo
+        comensales
+        estado
+        abrir()
+        pedirPrecuenta(descuento)
+    }
+    class Comanda {
+        numero
+        claveIdempotencia
+        enviar()
+    }
+    class LineaComanda {
+        nombreCopiado
+        precioUnitarioCopiado
+        cantidad
+        aclaraciones
+        anular(motivo)
+    }
+    class Venta {
+        subtotal
+        descuento
+        total
+        estadoFiscal
+        cobrar(pagos)
+        anular(motivo)
+        finalizarSinComprobante()
+    }
+    class Pago {
+        medio
+        importe
+        corregirMedio(nuevo, motivo)
+    }
+    class ComprobanteFiscal {
+        tipo
+        puntoVenta
+        numero
+        condicionIvaReceptor
+        cae
+        vencimientoCae
+    }
+    SesionMesa &quot;1&quot; --&gt; &quot;*&quot; Comanda
+    Comanda &quot;1&quot; --&gt; &quot;*&quot; LineaComanda
+    LineaComanda &quot;*&quot; --&gt; &quot;1&quot; Producto : copia nombre y precio
+    SesionMesa &quot;1&quot; --&gt; &quot;0..1&quot; Venta
+    Venta &quot;1&quot; --&gt; &quot;1..2&quot; Pago
+    Venta &quot;1&quot; --&gt; &quot;0..*&quot; ComprobanteFiscal : factura y notas de crédito</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="CLA-02"><header><p>03-clases.md · diseño objetivo o propuesta, sin implementación comprobada · HU-150, HU-152, HU-220, HU-223, HU-225, HU-210, HU-212, HU-182</p><h2>CLA-02. Caja, trazabilidad y Mis finanzas</h2><nav><a href="03-clases.md#cla-02">Explicación y escenarios</a><a href="png/CLA-02.png">PNG</a><a href="svg/CLA-02.svg">SVG</a><a href="fuentes/CLA-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/CLA-02.svg" alt="CLA-02. Caja, trazabilidad y Mis finanzas" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>classDiagram
+    class TurnoCaja {
+        cajero
+        fondoInicial
+        efectivoEsperado
+        efectivoContado
+        diferencia
+        abrir(fondo)
+        cerrar(conteo)
+    }
+    class MovimientoCaja {
+        tipo
+        medio
+        importe
+        motivo
+    }
+    class Evento {
+        hora
+        usuario
+        accion
+        sesionMesa
+        venta
+        turno
+    }
+    class CorreccionPago {
+        medioAnterior
+        medioNuevo
+        motivo
+        posteriorAlCierre
+    }
+    class MovimientoFinanzas {
+        fecha
+        tipo
+        importe
+        categoria
+        local opcional
+    }
+    class CategoriaFinanzas {
+        nombre
+        tipo
+        delNegocio
+    }
+    TurnoCaja &quot;1&quot; --&gt; &quot;*&quot; MovimientoCaja
+    TurnoCaja &quot;1&quot; --&gt; &quot;*&quot; Evento
+    CorreccionPago ..&gt; Evento : genera
+    MovimientoFinanzas &quot;*&quot; --&gt; &quot;1&quot; CategoriaFinanzas
+    note for MovimientoFinanzas &quot;Vive solo en la nube. Solo el dueño, con segunda clave.&quot;
+    note for Evento &quot;Solo agregar. Se replica tal cual.&quot;</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="DAT-01"><header><p>04-datos.md · diseño objetivo o propuesta, sin implementación comprobada · HU-100, HU-140, HU-244, HU-260</p><h2>DAT-01. Base local: núcleo de venta y outbox</h2><nav><a href="04-datos.md#dat-01">Explicación y escenarios</a><a href="png/DAT-01.png">PNG</a><a href="svg/DAT-01.svg">SVG</a><a href="fuentes/DAT-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/DAT-01.svg" alt="DAT-01. Base local: núcleo de venta y outbox" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>erDiagram
+    TENANT ||--o{ CASH_SHIFT : has
+    TENANT ||--o{ SALE : records
+    CASH_SHIFT ||--o{ SALE : groups
+    SALE ||--|{ PAYMENT : paid_with
+    SALE ||--o{ FISCAL_DOCUMENT : documented_by
+    SALE ||--o{ FISCAL_JOB : queues
+    SALE ||--o{ PRINT_JOB : queues
+    TENANT ||--o{ SYNC_OUTBOX : emits
+    TENANT ||--o{ AUDIT_LOG : records
+    TENANT {
+        uuid id PK
+        string cuit
+        int point_of_sale
+    }
+    SALE {
+        uuid id PK &quot;UUID v7 generado en el local&quot;
+        uuid tenant_id FK
+        uuid cash_shift_id FK
+        numeric total
+        string status
+        string fiscal_status
+        int version
+    }
+    PAYMENT {
+        uuid id PK
+        uuid sale_id FK
+        string method
+        numeric amount
+    }
+    FISCAL_DOCUMENT {
+        uuid id PK
+        uuid sale_id FK
+        string type
+        int number
+        string cae
+        string status
+    }
+    FISCAL_JOB {
+        uuid id PK
+        string status
+        int attempts
+        timestamp next_attempt_at
+    }
+    PRINT_JOB {
+        uuid id PK
+        string printer
+        string status
+    }
+    SYNC_OUTBOX {
+        uuid id PK
+        uuid tenant_id FK
+        bigint sequence UK
+        string entity
+        uuid entity_id
+        int version
+        jsonb payload
+        timestamp confirmed_at
+    }
+    AUDIT_LOG {
+        uuid id PK
+        uuid tenant_id FK
+        string actor_type
+        string actor_id
+        string action
+        jsonb before
+        jsonb after
+    }
+    CASH_SHIFT {
+        uuid id PK
+        uuid tenant_id FK
+        numeric expected_cash
+        numeric counted_cash
+    }</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="DAT-02"><header><p>04-datos.md · diseño objetivo o propuesta, sin implementación comprobada · HU-240, HU-241, HU-243, HU-263, HU-264, HU-210</p><h2>DAT-02. Base en la nube: locales, membresías, réplica y finanzas</h2><nav><a href="04-datos.md#dat-02">Explicación y escenarios</a><a href="png/DAT-02.png">PNG</a><a href="svg/DAT-02.svg">SVG</a><a href="fuentes/DAT-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/DAT-02.svg" alt="DAT-02. Base en la nube: locales, membresías, réplica y finanzas" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>erDiagram
+    USER ||--o{ MEMBERSHIP : has
+    TENANT ||--o{ MEMBERSHIP : grants
+    TENANT ||--o{ DEVICE : links
+    TENANT ||--o{ SALE_REPLICA : receives
+    TENANT ||--o{ FISCAL_DOCUMENT_REPLICA : receives
+    TENANT ||--o{ SYNC_BATCH : records
+    USER ||--o{ FINANCE_ENTRY : keeps
+    FINANCE_CATEGORY ||--o{ FINANCE_ENTRY : classifies
+    TENANT |o--o{ FINANCE_ENTRY : optional
+    USER {
+        uuid id PK
+        string email UK
+    }
+    MEMBERSHIP {
+        uuid user_id FK
+        uuid tenant_id FK
+        string role &quot;owner o accountant&quot;
+        bool is_active
+    }
+    TENANT {
+        uuid id PK
+        string name
+        string cuit
+        int sync_interval_min
+    }
+    DEVICE {
+        uuid id PK
+        uuid tenant_id FK
+        string credential_hash
+        string version
+        timestamp last_seen_at
+    }
+    SALE_REPLICA {
+        uuid id PK &quot;mismo id que en el local&quot;
+        uuid tenant_id FK &quot;con RLS&quot;
+        int version
+        numeric total
+        string fiscal_status
+    }
+    FISCAL_DOCUMENT_REPLICA {
+        uuid id PK
+        uuid tenant_id FK &quot;con RLS&quot;
+        string type
+        int number
+        numeric net
+        numeric vat
+    }
+    SYNC_BATCH {
+        uuid id PK
+        uuid tenant_id FK
+        bigint sequence_to
+        int applied
+        int ignored
+        string result
+    }
+    FINANCE_ENTRY {
+        uuid id PK
+        uuid owner_id FK
+        uuid tenant_id FK &quot;opcional&quot;
+        date date
+        numeric amount
+    }
+    FINANCE_CATEGORY {
+        uuid id PK
+        string name
+        bool is_business
+    }</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="TEC-01"><header><p>05-secuencias-tecnicas.md · diseño objetivo o propuesta, sin implementación comprobada · HU-140, HU-171, HU-271</p><h2>TEC-01. Cobrar e imprimir sin esperar a ARCA</h2><nav><a href="05-secuencias-tecnicas.md#tec-01">Explicación y escenarios</a><a href="png/TEC-01.png">PNG</a><a href="svg/TEC-01.svg">SVG</a><a href="fuentes/TEC-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/TEC-01.svg" alt="TEC-01. Cobrar e imprimir sin esperar a ARCA" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant C as Cajero
+    participant W as Caja React
+    participant D as Django local
+    participant DB as PostgreSQL local
+    participant K as Worker local
+    participant H as Impresora ESC/POS
+    C-&gt;&gt;W: confirma pagos (F6 y Enter)
+    W-&gt;&gt;D: POST cobrar, con clave de idempotencia
+    D-&gt;&gt;D: permisos, turno abierto, recalcula total
+    D-&gt;&gt;DB: BEGIN
+    D-&gt;&gt;DB: venta, pagos, evento, auditoría
+    D-&gt;&gt;DB: trabajo fiscal y trabajo de impresión
+    D-&gt;&gt;DB: fila en sync_outbox
+    D-&gt;&gt;DB: COMMIT
+    D--&gt;&gt;W: venta cobrada, estado fiscal pendiente
+    W--&gt;&gt;C: mesa libre, puede seguir atendiendo
+    K-&gt;&gt;DB: toma trabajo de impresión
+    K-&gt;&gt;H: ticket ESC/POS
+    alt impresora responde
+        K-&gt;&gt;DB: impreso
+    else sin papel o apagada
+        K-&gt;&gt;DB: fallido, aviso en pantalla
+    end
+    Note over D,DB: nada de este camino sale de la red del local</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="TEC-02"><header><p>05-secuencias-tecnicas.md · diseño objetivo o propuesta, sin implementación comprobada · HU-161, HU-162, HU-163, HU-166</p><h2>TEC-02. Emitir la factura con CAE</h2><nav><a href="05-secuencias-tecnicas.md#tec-02">Explicación y escenarios</a><a href="png/TEC-02.png">PNG</a><a href="svg/TEC-02.svg">SVG</a><a href="fuentes/TEC-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/TEC-02.svg" alt="TEC-02. Emitir la factura con CAE" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant K as Worker fiscal local
+    participant DB as PostgreSQL local
+    participant AA as ARCA WSAA
+    participant AF as ARCA WSFEv1
+    K-&gt;&gt;DB: toma el próximo trabajo fiscal con bloqueo de fila
+    K-&gt;&gt;K: ticket de acceso vigente en caché
+    opt ticket vencido
+        K-&gt;&gt;AA: LoginCms firmado con el certificado del local
+        AA--&gt;&gt;K: token y sign, válidos por horas
+    end
+    K-&gt;&gt;AF: FECompUltimoAutorizado
+    AF--&gt;&gt;K: último número
+    K-&gt;&gt;DB: reserva número siguiente
+    K-&gt;&gt;AF: FECAESolicitar con CondicionIVAReceptorId
+    alt aprobado
+        AF--&gt;&gt;K: CAE y vencimiento
+        K-&gt;&gt;DB: BEGIN
+        K-&gt;&gt;DB: comprobante autorizado, venta facturada
+        K-&gt;&gt;DB: trabajo de impresión de la factura con QR
+        K-&gt;&gt;DB: evento, auditoría y outbox
+        K-&gt;&gt;DB: COMMIT
+    else rechazado
+        AF--&gt;&gt;K: errores y observaciones
+        K-&gt;&gt;DB: venta pendiente con motivo
+    else sin respuesta
+        K-&gt;&gt;DB: en duda, ver TEC-03
+    end</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="TEC-03"><header><p>05-secuencias-tecnicas.md · diseño objetivo o propuesta, sin implementación comprobada · HU-164, HU-168</p><h2>TEC-03. Reintento seguro: nunca dos facturas, nunca un número salteado</h2><nav><a href="05-secuencias-tecnicas.md#tec-03">Explicación y escenarios</a><a href="png/TEC-03.png">PNG</a><a href="svg/TEC-03.svg">SVG</a><a href="fuentes/TEC-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/TEC-03.svg" alt="TEC-03. Reintento seguro: nunca dos facturas, nunca un número salteado" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant K as Worker fiscal local
+    participant DB as PostgreSQL local
+    participant AF as ARCA WSFEv1
+    Note over K,DB: trabajo en duda, número N reservado
+    loop hasta que haya conexión, con espera creciente
+        K-&gt;&gt;AF: FECompConsultar tipo, punto de venta, N
+    end
+    alt ARCA tiene el comprobante N
+        AF--&gt;&gt;K: CAE de N
+        K-&gt;&gt;DB: guarda ese CAE, no vuelve a pedir
+    else ARCA no lo tiene
+        AF--&gt;&gt;K: no existe
+        K-&gt;&gt;AF: FECompUltimoAutorizado
+        AF--&gt;&gt;K: último es N-1
+        K-&gt;&gt;AF: FECAESolicitar con N
+        AF--&gt;&gt;K: CAE
+        K-&gt;&gt;DB: comprobante autorizado
+    end
+    Note over K,AF: sin internet por horas, las ventas quedan pendientes y el cliente recibe ticket provisorio</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="TEC-04"><header><p>05-secuencias-tecnicas.md · diseño objetivo o propuesta, sin implementación comprobada · HU-260, HU-261, HU-262, HU-263, HU-264, HU-255</p><h2>TEC-04. Sincronización por outbox</h2><nav><a href="05-secuencias-tecnicas.md#tec-04">Explicación y escenarios</a><a href="png/TEC-04.png">PNG</a><a href="svg/TEC-04.svg">SVG</a><a href="fuentes/TEC-04.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/TEC-04.svg" alt="TEC-04. Sincronización por outbox" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant K as Worker local
+    participant DB as PostgreSQL local
+    participant API as Django nube
+    participant PN as PostgreSQL nube
+    Note over K: cada X minutos, al cerrar caja o con Sincronizar ahora
+    K-&gt;&gt;DB: lee hasta N filas sin confirmar, por secuencia
+    K-&gt;&gt;API: POST lote, credencial del equipo, salud del servidor
+    API-&gt;&gt;API: valida equipo y local
+    API-&gt;&gt;PN: BEGIN
+    loop cada evento del lote
+        API-&gt;&gt;PN: upsert si la versión es mayor
+    end
+    API-&gt;&gt;PN: sync_batch con aplicados e ignorados
+    API-&gt;&gt;PN: COMMIT
+    API--&gt;&gt;K: secuencia aplicada y configuración vigente
+    K-&gt;&gt;DB: marca confirmado hasta esa secuencia
+    K-&gt;&gt;K: aplica configuración nueva si cambió
+    alt error de red o 5xx
+        K-&gt;&gt;K: reintenta con espera creciente, nada se borra
+    end</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="TEC-05"><header><p>05-secuencias-tecnicas.md · diseño objetivo o propuesta, sin implementación comprobada · HU-230, HU-233, HU-234, HU-235, HU-271</p><h2>TEC-05. Del pull request a producción</h2><nav><a href="05-secuencias-tecnicas.md#tec-05">Explicación y escenarios</a><a href="png/TEC-05.png">PNG</a><a href="svg/TEC-05.svg">SVG</a><a href="fuentes/TEC-05.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/TEC-05.svg" alt="TEC-05. Del pull request a producción" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant Dev as Desarrollador
+    participant GH as GitHub
+    participant CI as GitHub Actions
+    participant Rev as Revisor
+    participant Pru as Pruebas
+    participant Prod as Producción
+    Dev-&gt;&gt;GH: abre pull request
+    GH-&gt;&gt;CI: formato, lint, tipos, tests, build, auditoría, secretos
+    CI--&gt;&gt;GH: verde o rojo
+    Rev-&gt;&gt;GH: revisa y aprueba
+    Dev-&gt;&gt;GH: merge a main
+    GH-&gt;&gt;CI: imagen de la API, front, instalador
+    CI-&gt;&gt;Pru: migraciones, despliegue nube y canal pruebas
+    CI-&gt;&gt;Pru: smoke test
+    Dev-&gt;&gt;GH: tag vX.Y.Z
+    GH-&gt;&gt;CI: pipeline de producción
+    CI--&gt;&gt;Rev: pide aprobación del environment produccion
+    Rev-&gt;&gt;CI: aprueba
+    CI-&gt;&gt;Prod: mismo artefacto, canal estable</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="TEC-06"><header><p>05-secuencias-tecnicas.md · diseño objetivo o propuesta, sin implementación comprobada · HU-252, HU-254, HU-255</p><h2>TEC-06. Vincular el servidor local y actualizarlo a distancia</h2><nav><a href="05-secuencias-tecnicas.md#tec-06">Explicación y escenarios</a><a href="png/TEC-06.png">PNG</a><a href="svg/TEC-06.svg">SVG</a><a href="fuentes/TEC-06.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/TEC-06.svg" alt="TEC-06. Vincular el servidor local y actualizarlo a distancia" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant O as Dueño
+    participant P as Portal
+    participant API as Django nube
+    participant S as Servidor local
+    participant U as Actualizador local
+    O-&gt;&gt;P: generar código de vinculación
+    P-&gt;&gt;API: crear código de un solo uso
+    API--&gt;&gt;O: código, vence en minutos
+    O-&gt;&gt;S: ingresa el código en la instalación
+    S-&gt;&gt;API: canjea código
+    API--&gt;&gt;S: credencial del equipo
+    S-&gt;&gt;S: guarda credencial con DPAPI
+    Note over S,API: más adelante, en cada sincronización
+    API--&gt;&gt;S: versión disponible en su canal
+    S-&gt;&gt;U: hay versión nueva
+    U-&gt;&gt;U: espera caja cerrada
+    U-&gt;&gt;U: descarga, verifica firma, backup
+    U-&gt;&gt;S: detiene, migra, inicia
+    alt chequeo de salud bien
+        U-&gt;&gt;API: versión nueva instalada
+    else falla
+        U-&gt;&gt;S: vuelve a la versión anterior
+        U-&gt;&gt;API: actualización fallida, con el error
+    end</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-01"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-110, HU-113, HU-150</p><h2>FUN-01. Ingresar con PIN y abrir la caja</h2><nav><a href="06-flujos-funcionales.md#fun-01">Explicación y escenarios</a><a href="png/FUN-01.png">PNG</a><a href="svg/FUN-01.svg">SVG</a><a href="fuentes/FUN-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-01.svg" alt="FUN-01. Ingresar con PIN y abrir la caja" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;Elegir usuario y escribir PIN&quot;] --&gt; B{&quot;¿PIN correcto?&quot;}
+    B --&gt;|&quot;no&quot;| C{&quot;¿5 intentos fallidos?&quot;}
+    C --&gt;|&quot;no&quot;| A
+    C --&gt;|&quot;sí&quot;| D[&quot;Usuario bloqueado unos minutos&lt;br/&gt;queda auditado&quot;]
+    B --&gt;|&quot;sí&quot;| E{&quot;¿Hay turno abierto?&quot;}
+    E --&gt;|&quot;sí&quot;| F[&quot;Ir al salón&quot;]
+    E --&gt;|&quot;no&quot;| G{&quot;¿Rol?&quot;}
+    G --&gt;|&quot;mozo&quot;| H[&quot;Mensaje: la caja está cerrada&quot;]
+    G --&gt;|&quot;cajero o dueño&quot;| I[&quot;Cargar fondo inicial y turno&quot;]
+    I --&gt; J[&quot;Turno abierto&quot;] --&gt; F</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-02"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-131, HU-132, HU-133, HU-134, HU-135, HU-130</p><h2>FUN-02. Abrir una mesa y cargar la comanda por código</h2><nav><a href="06-flujos-funcionales.md#fun-02">Explicación y escenarios</a><a href="png/FUN-02.png">PNG</a><a href="svg/FUN-02.svg">SVG</a><a href="fuentes/FUN-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-02.svg" alt="FUN-02. Abrir una mesa y cargar la comanda por código" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;F2: elegir mesa&quot;] --&gt; B{&quot;¿Mesa libre?&quot;}
+    B --&gt;|&quot;sí&quot;| C[&quot;Comensales y mozo&quot;] --&gt; D
+    B --&gt;|&quot;no&quot;| D[&quot;Comanda de la mesa&quot;]
+    D --&gt; E[&quot;Escribir código, cantidad o nombre&quot;]
+    E --&gt; F{&quot;¿Código existe?&quot;}
+    F --&gt;|&quot;no&quot;| G[&quot;Aviso y sonido, campo limpio&quot;] --&gt; E
+    F --&gt;|&quot;sí&quot;| H{&quot;¿Tiene aclaraciones?&quot;}
+    H --&gt;|&quot;sí&quot;| I[&quot;Selector numerado, Enter o Esc&quot;] --&gt; J
+    H --&gt;|&quot;no&quot;| J[&quot;Línea agregada sin enviar&quot;]
+    J --&gt; K{&quot;¿Más productos?&quot;}
+    K --&gt;|&quot;sí&quot;| E
+    K --&gt;|&quot;no&quot;| L[&quot;Enviar a cocina&quot;]
+    L --&gt; M[&quot;Comanda guardada, ticket a cocina&quot;]
+    M --&gt; N{&quot;¿Imprimió?&quot;}
+    N --&gt;|&quot;no&quot;| O[&quot;Aviso, se puede reimprimir&quot;]
+    N --&gt;|&quot;sí&quot;| P[&quot;Volver al salón&quot;]
+    O --&gt; P</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-03"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-136, HU-140, HU-162, HU-164, HU-226, HU-172</p><h2>FUN-03. Cobrar, facturar o finalizar sin comprobante</h2><nav><a href="06-flujos-funcionales.md#fun-03">Explicación y escenarios</a><a href="png/FUN-03.png">PNG</a><a href="svg/FUN-03.svg">SVG</a><a href="fuentes/FUN-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-03.svg" alt="FUN-03. Cobrar, facturar o finalizar sin comprobante" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;F4: precuenta&quot;] --&gt; B[&quot;F6: cobrar&quot;]
+    B --&gt; C[&quot;Uno o dos medios de pago&quot;]
+    C --&gt; D{&quot;¿Suman el total?&quot;}
+    D --&gt;|&quot;no&quot;| C
+    D --&gt;|&quot;sí&quot;| E[&quot;Venta guardada, mesa libre&quot;]
+    E --&gt; F{&quot;¿Factura o F9?&quot;}
+    F --&gt;|&quot;F9&quot;| G[&quot;Sin comprobante&lt;br/&gt;lista aparte para el contador&quot;]
+    F --&gt;|&quot;F8 factura&quot;| H[&quot;Condición IVA del receptor&lt;br/&gt;consumidor final por defecto&quot;]
+    H --&gt; I{&quot;¿Hay internet?&quot;}
+    I --&gt;|&quot;no&quot;| J[&quot;Ticket provisorio&lt;br/&gt;no válido como factura&quot;]
+    J --&gt; K[&quot;Pendiente de CAE&lt;br/&gt;se reintenta solo&quot;]
+    I --&gt;|&quot;sí&quot;| L{&quot;¿ARCA aprueba?&quot;}
+    L --&gt;|&quot;sí&quot;| M[&quot;Factura con CAE y QR impresa&quot;]
+    L --&gt;|&quot;rechaza&quot;| N[&quot;Pendiente con motivo&lt;br/&gt;reintentar o dejar para después&quot;]
+    K --&gt; L</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-04"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-152, HU-153, HU-224, HU-262</p><h2>FUN-04. Cerrar la caja</h2><nav><a href="06-flujos-funcionales.md#fun-04">Explicación y escenarios</a><a href="png/FUN-04.png">PNG</a><a href="svg/FUN-04.svg">SVG</a><a href="fuentes/FUN-04.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-04.svg" alt="FUN-04. Cerrar la caja" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;F10: cierre de caja&quot;] --&gt; B{&quot;¿Mesas abiertas?&quot;}
+    B --&gt;|&quot;sí&quot;| C{&quot;¿Es el dueño?&quot;}
+    C --&gt;|&quot;no&quot;| D[&quot;Aviso con la lista de mesas&quot;]
+    C --&gt;|&quot;sí, fuerza&quot;| E
+    B --&gt;|&quot;no&quot;| E[&quot;Ver esperado por medio de pago&quot;]
+    E --&gt; F[&quot;Contar billetes y, opcional, posnet, QR y banco&quot;]
+    F --&gt; G{&quot;¿Hay diferencia?&quot;}
+    G --&gt;|&quot;sí&quot;| H[&quot;Sugerencias de cobros con ese importe&quot;]
+    H --&gt; I{&quot;¿Era un medio mal cargado?&quot;}
+    I --&gt;|&quot;sí&quot;| J[&quot;Corregir medio con motivo&quot;] --&gt; E
+    I --&gt;|&quot;no&quot;| K[&quot;Comentar la diferencia&quot;]
+    G --&gt;|&quot;no&quot;| L[&quot;F10 otra vez para confirmar&quot;]
+    K --&gt; L
+    L --&gt; M[&quot;Turno cerrado, reporte impreso&quot;]
+    M --&gt; N[&quot;Envío a la nube sin esperar&quot;]
+    N --&gt; O{&quot;¿Hay internet?&quot;}
+    O --&gt;|&quot;no&quot;| P[&quot;Aviso: se envía al volver la conexión&quot;]
+    O --&gt;|&quot;sí&quot;| Q[&quot;Dueño ve el cierre desde afuera&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-05"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-142, HU-165</p><h2>FUN-05. Anular una venta</h2><nav><a href="06-flujos-funcionales.md#fun-05">Explicación y escenarios</a><a href="png/FUN-05.png">PNG</a><a href="svg/FUN-05.svg">SVG</a><a href="fuentes/FUN-05.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-05.svg" alt="FUN-05. Anular una venta" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;Elegir venta y motivo&quot;] --&gt; B{&quot;¿Turno de la venta?&quot;}
+    B --&gt;|&quot;cerrado&quot;| C{&quot;¿Es el dueño?&quot;}
+    C --&gt;|&quot;no&quot;| D[&quot;Rechazado&quot;]
+    C --&gt;|&quot;sí&quot;| E[&quot;Ajuste en el turno actual&quot;]
+    B --&gt;|&quot;abierto&quot;| F{&quot;¿Tiene factura autorizada?&quot;}
+    E --&gt; F
+    F --&gt;|&quot;no&quot;| G[&quot;Venta anulada, sale de los totales&quot;]
+    F --&gt;|&quot;sí&quot;| H[&quot;Pedir nota de crédito a ARCA&quot;]
+    H --&gt; I{&quot;¿Autorizada?&quot;}
+    I --&gt;|&quot;sí&quot;| G
+    I --&gt;|&quot;no&quot;| J[&quot;Venta sigue cobrada&lt;br/&gt;anulación pendiente con motivo&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-06"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-211, HU-212, HU-214</p><h2>FUN-06. Mis finanzas: cargar un movimiento</h2><nav><a href="06-flujos-funcionales.md#fun-06">Explicación y escenarios</a><a href="png/FUN-06.png">PNG</a><a href="svg/FUN-06.svg">SVG</a><a href="fuentes/FUN-06.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-06.svg" alt="FUN-06. Mis finanzas: cargar un movimiento" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;Dueño en el portal&quot;] --&gt; B[&quot;Candado de la barra&quot;]
+    B --&gt; C[&quot;Segunda clave&quot;]
+    C --&gt; D{&quot;¿Correcta?&quot;}
+    D --&gt;|&quot;no&quot;| E{&quot;¿5 seguidas?&quot;}
+    E --&gt;|&quot;sí&quot;| F[&quot;Área bloqueada unos minutos&quot;]
+    E --&gt;|&quot;no&quot;| C
+    D --&gt;|&quot;sí&quot;| G[&quot;Fecha, tipo, categoría, importe, medio, local opcional&quot;]
+    G --&gt; H{&quot;¿Datos válidos?&quot;}
+    H --&gt;|&quot;no&quot;| I[&quot;Error claro, no se guarda&quot;] --&gt; G
+    H --&gt;|&quot;sí&quot;| J[&quot;Movimiento y auditoría en una transacción&quot;]
+    J --&gt; K[&quot;Aparece en su mes y en el saldo&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUN-07"><header><p>06-flujos-funcionales.md · diseño objetivo o propuesta, sin implementación comprobada · HU-200, HU-201, HU-202, HU-203, HU-242</p><h2>FUN-07. El contador consulta la facturación</h2><nav><a href="06-flujos-funcionales.md#fun-07">Explicación y escenarios</a><a href="png/FUN-07.png">PNG</a><a href="svg/FUN-07.svg">SVG</a><a href="fuentes/FUN-07.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUN-07.svg" alt="FUN-07. El contador consulta la facturación" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;Email y contraseña&quot;] --&gt; B{&quot;¿Válidos?&quot;}
+    B --&gt;|&quot;no&quot;| C[&quot;Rechazo sin decir cuál falló&lt;br/&gt;auditado&quot;]
+    B --&gt;|&quot;sí&quot;| D{&quot;¿Más de un local?&quot;}
+    D --&gt;|&quot;sí&quot;| E[&quot;Elegir local&quot;] --&gt; F
+    D --&gt;|&quot;no&quot;| F[&quot;Facturación del mes&quot;]
+    F --&gt; G[&quot;Filtro de fechas o períodos rápidos&quot;]
+    G --&gt; H[&quot;Comprobantes y totales por medio y tipo&quot;]
+    H --&gt; I[&quot;Ventas sin comprobante en lista aparte&quot;]
+    F --&gt; J[&quot;Datos al HH:MM del último envío&quot;]
+    F --&gt; K{&quot;¿Intenta otra ruta?&quot;}
+    K --&gt;|&quot;sí&quot;| L[&quot;Vuelve a facturación, 403 en la API&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="EST-01"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-162, HU-164, HU-165, HU-226, HU-168</p><h2>EST-01. Comprobante fiscal</h2><nav><a href="07-estados.md#est-01">Explicación y escenarios</a><a href="png/EST-01.png">PNG</a><a href="svg/EST-01.svg">SVG</a><a href="fuentes/EST-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-01.svg" alt="EST-01. Comprobante fiscal" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
+    [*] --&gt; Cobrada
+    state &quot;Venta cobrada&quot; as Cobrada
+    state &quot;Pendiente de CAE&quot; as Pendiente
+    state &quot;En duda&quot; as Duda
+    state &quot;Facturada&quot; as Facturada
+    state &quot;Rechazada&quot; as Rechazada
+    state &quot;Sin comprobante&quot; as SinComp
+    state &quot;Anulación pendiente&quot; as AnulPend
+    state &quot;Anulada con nota de crédito&quot; as Anulada
+    Cobrada --&gt; Pendiente: F8 factura
+    Cobrada --&gt; SinComp: F9 finalizar
+    Pendiente --&gt; Facturada: ARCA aprueba
+    Pendiente --&gt; Rechazada: ARCA rechaza
+    Pendiente --&gt; Duda: sin respuesta
+    Duda --&gt; Facturada: consulta encuentra el CAE
+    Duda --&gt; Pendiente: consulta no lo encuentra
+    Rechazada --&gt; Pendiente: reintento tras corregir
+    Facturada --&gt; AnulPend: anular venta
+    AnulPend --&gt; Anulada: nota de crédito aprobada
+    AnulPend --&gt; Facturada: nota de crédito rechazada
+    SinComp --&gt; [*]
+    Anulada --&gt; [*]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="EST-02"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-130, HU-131, HU-136, HU-137, HU-140</p><h2>EST-02. Sesión de mesa</h2><nav><a href="07-estados.md#est-02">Explicación y escenarios</a><a href="png/EST-02.png">PNG</a><a href="svg/EST-02.svg">SVG</a><a href="fuentes/EST-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-02.svg" alt="EST-02. Sesión de mesa" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
+    state &quot;Libre&quot; as Libre
+    state &quot;Ocupada&quot; as Ocupada
+    state &quot;Con precuenta&quot; as Precuenta
+    state &quot;Cobrada&quot; as Cobrada
+    [*] --&gt; Libre
+    Libre --&gt; Ocupada: abrir con caja abierta
+    Ocupada --&gt; Ocupada: enviar comanda o anular línea
+    Ocupada --&gt; Precuenta: F4 con todo enviado
+    Precuenta --&gt; Ocupada: agregar productos
+    Precuenta --&gt; Cobrada: cobro confirmado
+    Ocupada --&gt; Libre: pasar a otra mesa
+    Cobrada --&gt; Libre: mesa liberada</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="EST-03"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-150, HU-152, HU-154, HU-223, HU-262</p><h2>EST-03. Turno de caja</h2><nav><a href="07-estados.md#est-03">Explicación y escenarios</a><a href="png/EST-03.png">PNG</a><a href="svg/EST-03.svg">SVG</a><a href="fuentes/EST-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-03.svg" alt="EST-03. Turno de caja" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
+    state &quot;Sin turno&quot; as Sin
+    state &quot;Abierto&quot; as Abierto
+    state &quot;En arqueo&quot; as Arqueo
+    state &quot;Cerrado&quot; as Cerrado
+    state &quot;Cerrado y enviado&quot; as Enviado
+    [*] --&gt; Sin
+    Sin --&gt; Abierto: fondo inicial
+    Abierto --&gt; Abierto: ventas, movimientos, correcciones
+    Abierto --&gt; Arqueo: F10
+    Arqueo --&gt; Abierto: Esc
+    Arqueo --&gt; Cerrado: F10 de nuevo
+    Cerrado --&gt; Enviado: lote confirmado por la nube
+    Cerrado --&gt; Cerrado: corrección del dueño como ajuste posterior
+    Enviado --&gt; Sin: listo para el próximo turno</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="EST-04"><header><p>07-estados.md · diseño objetivo o propuesta, sin implementación comprobada · HU-260, HU-261, HU-263, HU-265</p><h2>EST-04. Fila del outbox y lote de sincronización</h2><nav><a href="07-estados.md#est-04">Explicación y escenarios</a><a href="png/EST-04.png">PNG</a><a href="svg/EST-04.svg">SVG</a><a href="fuentes/EST-04.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/EST-04.svg" alt="EST-04. Fila del outbox y lote de sincronización" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>stateDiagram-v2
+    state &quot;Pendiente&quot; as Pend
+    state &quot;En vuelo&quot; as Vuelo
+    state &quot;Confirmada&quot; as Conf
+    state &quot;Purgada&quot; as Purg
+    [*] --&gt; Pend: misma transacción que el cambio
+    Pend --&gt; Vuelo: entra en un lote
+    Vuelo --&gt; Conf: la nube devuelve su secuencia
+    Vuelo --&gt; Pend: error de red o rechazo, reintento
+    Conf --&gt; Purg: pasan N días
+    Purg --&gt; [*]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="OPS-01"><header><p>08-operacion.md · diseño objetivo o propuesta, sin implementación comprobada · HU-123, HU-194, HU-250, HU-270, HU-280, HU-281</p><h2>OPS-01. Del sistema anterior al nuevo</h2><nav><a href="08-operacion.md#ops-01">Explicación y escenarios</a><a href="png/OPS-01.png">PNG</a><a href="svg/OPS-01.svg">SVG</a><a href="fuentes/OPS-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/OPS-01.svg" alt="OPS-01. Del sistema anterior al nuevo" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart TD
+    A[&quot;Medir el sistema anterior en uso: línea base&quot;] --&gt; B[&quot;Copia actual de la base del sistema anterior&quot;]
+    B --&gt; C[&quot;Importar carta, mozos y clientes con CUIT&quot;]
+    C --&gt; D[&quot;Instalar servidor local y vincularlo&quot;]
+    D --&gt; E[&quot;Ensayo en paralelo&lt;br/&gt;el anterior factura, el nuevo en homologación&quot;]
+    E --&gt; F{&quot;¿Servicio de prueba completo bien?&quot;}
+    F --&gt;|&quot;no&quot;| G[&quot;Corregir y repetir el ensayo&quot;] --&gt; E
+    F --&gt;|&quot;sí&quot;| H[&quot;Día del corte, antes de abrir&quot;]
+    H --&gt; I[&quot;Último número del sistema anterior por tipo y punto de venta&quot;]
+    I --&gt; J[&quot;Sistema nuevo pasa a ARCA producción&lt;br/&gt;toma el siguiente número&quot;]
+    J --&gt; K[&quot;Acta del corte&quot;]
+    K --&gt; L[&quot;Primeros servicios con el equipo disponible&lt;br/&gt;sistema anterior instalado sin facturar&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="OPS-02"><header><p>08-operacion.md · diseño objetivo o propuesta, sin implementación comprobada · HU-246, HU-253, HU-254</p><h2>OPS-02. Backups y restauración</h2><nav><a href="08-operacion.md#ops-02">Explicación y escenarios</a><a href="png/OPS-02.png">PNG</a><a href="svg/OPS-02.svg">SVG</a><a href="fuentes/OPS-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/OPS-02.svg" alt="OPS-02. Backups y restauración" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    subgraph Local[&quot;Local&quot;]
+        PGL[(&quot;PostgreSQL local&quot;)]
+        BL[&quot;pg_dump al cerrar caja y de noche&quot;]
+        Ext[&quot;Disco externo o carpeta configurada&quot;]
+        PGL --&gt; BL --&gt; Ext
+    end
+    subgraph Nube[&quot;Nube&quot;]
+        PGN[(&quot;PostgreSQL nube&lt;br/&gt;réplica y Mis finanzas&quot;)]
+        GA[&quot;GitHub Actions nocturno&lt;br/&gt;pg_dump cifrado&quot;]
+        R2[(&quot;Almacenamiento externo&lt;br/&gt;Cloudflare R2&quot;)]
+        PGN --&gt; GA --&gt; R2
+    end
+    PGL -.-&gt;|&quot;sincronización&quot;| PGN
+    R2 --&gt;|&quot;restauración mensual en entorno aislado&quot;| Prueba[&quot;Base de prueba&quot;]
+    Ext --&gt;|&quot;restauración en PC de prueba&quot;| Prueba2[&quot;Servidor local de prueba&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="OPS-03"><header><p>08-operacion.md · diseño objetivo o propuesta, sin implementación comprobada · HU-161, HU-245, HU-255, HU-265, HU-266</p><h2>OPS-03. Alertas operativas</h2><nav><a href="08-operacion.md#ops-03">Explicación y escenarios</a><a href="png/OPS-03.png">PNG</a><a href="svg/OPS-03.svg">SVG</a><a href="fuentes/OPS-03.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/OPS-03.svg" alt="OPS-03. Alertas operativas" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    S[&quot;Reporte de salud del servidor local&lt;br/&gt;viene en cada lote&quot;] --&gt; Eval{&quot;Evaluación en la nube&quot;}
+    Cron[&quot;Chequeo programado en la nube&quot;] --&gt; Eval
+    Eval --&gt;|&quot;sin lotes hace más del umbral&quot;| A1[&quot;Sync atrasada&quot;]
+    Eval --&gt;|&quot;facturas pendientes viejas&quot;| A2[&quot;CAE pendientes&quot;]
+    Eval --&gt;|&quot;faltan 30 días&quot;| A3[&quot;Certificado por vencer&quot;]
+    Eval --&gt;|&quot;backup local fallido&quot;| A4[&quot;Backup local&quot;]
+    Eval --&gt;|&quot;actualización revertida&quot;| A5[&quot;Versión fallida&quot;]
+    Eval --&gt;|&quot;conciliación diaria no cierra&quot;| A6[&quot;Diferencia local y nube&quot;]
+    A1 --&gt; Mail[&quot;Email al dueño y al equipo&quot;]
+    A2 --&gt; Mail
+    A3 --&gt; Mail
+    A4 --&gt; Mail
+    A5 --&gt; Mail
+    A6 --&gt; Mail</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUT-01"><header><p>09-version-2.md · diseño objetivo o propuesta, sin implementación comprobada · HU-300, HU-302, HU-310, HU-311</p><h2>FUT-01. Menú QR multilenguaje</h2><nav><a href="09-version-2.md#fut-01">Explicación y escenarios</a><a href="png/FUT-01.png">PNG</a><a href="svg/FUT-01.svg">SVG</a><a href="fuentes/FUT-01.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUT-01.svg" alt="FUT-01. Menú QR multilenguaje" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>sequenceDiagram
+    participant Cli as Cliente del local
+    participant Cel as Celular
+    participant Pag as Carta pública en la nube
+    participant API as Django nube
+    participant PN as PostgreSQL nube
+    Cli-&gt;&gt;Cel: escanea el QR de la mesa
+    Cel-&gt;&gt;Pag: abre la URL del local
+    Pag-&gt;&gt;API: GET carta pública del local, idioma del navegador
+    API-&gt;&gt;PN: productos activos de ese local, traducción si existe
+    API--&gt;&gt;Pag: categorías, productos, precios, agotados
+    Pag--&gt;&gt;Cli: carta en su idioma, con selector
+    Note over API,PN: solo lectura, sin datos de ventas ni del personal</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section>
+<section id="FUT-02"><header><p>09-version-2.md · diseño objetivo o propuesta, sin implementación comprobada · HU-320, HU-321, HU-322, HU-323, HU-324</p><h2>FUT-02. Stock de bebidas</h2><nav><a href="09-version-2.md#fut-02">Explicación y escenarios</a><a href="png/FUT-02.png">PNG</a><a href="svg/FUT-02.svg">SVG</a><a href="fuentes/FUT-02.mmd">Fuente Mermaid</a></nav></header><div class="drawing"><img src="svg/FUT-02.svg" alt="FUT-02. Stock de bebidas" loading="lazy"></div><details><summary>Ver Mermaid editable</summary><pre><code>flowchart LR
+    Compra[&quot;Ingreso de mercadería&quot;] --&gt;|&quot;suma&quot;| Mov[(&quot;Movimientos de stock&lt;br/&gt;solo agregar&quot;)]
+    Venta[&quot;Comanda enviada&quot;] --&gt;|&quot;resta en la misma transacción&quot;| Mov
+    Anul[&quot;Línea anulada&quot;] --&gt;|&quot;devuelve&quot;| Mov
+    Inv[&quot;Conteo de inventario&quot;] --&gt;|&quot;ajuste con motivo&quot;| Mov
+    Mov --&gt; Exist[&quot;Existencia por producto&lt;br/&gt;suma de movimientos&quot;]
+    Exist --&gt; Min{&quot;¿Debajo del mínimo?&quot;}
+    Min --&gt;|&quot;sí&quot;| Alerta[&quot;Aparece en el panel del dueño&quot;]</code></pre></details><a class="back" href="#inicio">Volver al índice</a></section></main></body></html>
