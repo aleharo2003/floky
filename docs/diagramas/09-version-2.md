@@ -49,4 +49,4 @@ flowchart LR
 
 **Archivos FUT-02:** [SVG](svg/FUT-02.svg) · [PNG](png/FUT-02.png) · [Mermaid](fuentes/FUT-02.mmd).
 
-**Lectura:** la existencia no se guarda "a mano": es la suma de movimientos. Vender sin stock se permite y avisa, para no frenar la caja. El stock general queda fuera de alcance; esto cubre el control de bebidas pedido para v2 (P-18).
+**Lectura:** la existencia no se guarda "a mano": es la suma de movimientos. Vender sin stock se permite y avisa, para no frenar la caja. El stock general queda fuera de alcance; esto cubre el control de bebidas pedido para v2, como función activable por local (HU-247).

@@ -1,12 +1,12 @@
 # ADR-0007. Impresión directa en ESC/POS desde el servidor local
 
-- **Estado:** propuesta. En cada instalación hay que confirmar cómo está conectada la impresora.
+- **Estado:** aceptada el 22/10/2026 (PR #1). En el primer local la impresora está por USB, se puede pasar a red y no tiene cajón. En cada instalación nueva hay que confirmar cómo está conectada.
 
 ## Contexto
 
 El primer local tiene una **Hasar P-250N**: térmica de 80 mm, 250 mm/s, interfaces serie, USB y Ethernet, conector para cajón de dinero (24 V, 1 A) y comandos **ESC/POS**. Es una impresora **no fiscal**, que es lo que corresponde con factura electrónica: la validez la da el CAE y el ticket lleva el QR. La mayoría de las térmicas del mercado hablan el mismo ESC/POS.
 
-## Decisión propuesta
+## Decisión
 
 - La app `printing` del servidor local arma el ticket en ESC/POS y lo manda directo:
   - por **Ethernet**: socket TCP crudo al puerto 9100 de la impresora, o

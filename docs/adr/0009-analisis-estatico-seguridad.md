@@ -1,6 +1,6 @@
 # ADR-0009. Análisis estático de seguridad (SAST) en CI
 
-- **Estado:** propuesta.
+- **Estado:** aceptada el 22/10/2026 (PR #1).
 
 ## Contexto
 

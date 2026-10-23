@@ -1,6 +1,6 @@
 # ADR-0002. Django + DRF + React, un mismo código en dos modos
 
-- **Estado:** propuesta.
+- **Estado:** aceptada el 22/10/2026 (PR #1).
 
 ## Contexto
 

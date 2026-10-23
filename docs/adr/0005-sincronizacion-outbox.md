@@ -1,12 +1,12 @@
 # ADR-0005. Sincronización con outbox y un solo dueño por dato
 
-- **Estado:** propuesta. "Cada X tiempo y al cerrar la caja" es un requisito; el mecanismo es la propuesta.
+- **Estado:** aceptada el 22/10/2026 (PR #1). El valor inicial de X sigue abierto (P-02). Para la carta, el punto 1 lo modifica [ADR-0010](0010-carta-se-edita-en-la-nube.md).
 
 ## Contexto
 
 La operación vive en la base local ([ADR-0001](0001-local-first.md)). El dueño y el contador miran en la nube. Hay que subir los cambios sin frenar la caja, sin perder nada si se corta internet y sin duplicar si un envío se repite.
 
-## Decisión propuesta
+## Decisión
 
 ### 1. Un solo dueño por dato
 
@@ -34,9 +34,9 @@ Mandar la foto completa hace que aplicar un evento dos veces, o fuera de orden, 
 
 ### 3. Cuándo se envía
 
-- Cada **X** minutos, configurable por local desde la nube. Valor inicial propuesto: 60.
+- Cada **X** horas, configurable por local desde la nube. Valor inicial propuesto: 1 hora (P-02).
 - Al **cerrar la caja**, sin bloquear al cajero.
-- Con el botón **"Sincronizar ahora"** del dueño.
+- Con el botón **"Enviar ahora"**, que pueden usar el cajero y el dueño (por ejemplo, si el contador necesita los datos en ese momento).
 - Al volver internet, si quedaron pendientes.
 
 ### 4. Cómo se envía

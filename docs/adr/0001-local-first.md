@@ -1,6 +1,6 @@
 # ADR-0001. Local first: servidor y base en cada local, copia en la nube
 
-- **Estado:** propuesta.
+- **Estado:** aceptada el 22/10/2026 (PR #1).
 
 ## Contexto
 

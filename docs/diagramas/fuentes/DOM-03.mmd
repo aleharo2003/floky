@@ -2,13 +2,15 @@ flowchart LR
     subgraph EscribeLocal["Se escribe en el local"]
         A1["Salón, comandas, ventas, pagos"]
         A2["Caja, comprobantes, eventos"]
-        A3["Carta, mesas, personal con PIN"]
+        A3["Mesas, personal con PIN"]
     end
     subgraph EscribeNube["Se escribe en la nube"]
         B1["Locales y membresías"]
         B2["Usuarios con email: dueño y contador"]
         B3["Mis finanzas"]
         B4["Configuración del servidor local"]
+        B5["Carta y precios"]
     end
     EscribeLocal -->|"sube por el outbox"| Replica[("Réplica de lectura en la nube")]
     B4 -->|"baja al sincronizar"| ServidorLocal["Servidor local"]
+    B5 -->|"baja al sincronizar"| ServidorLocal

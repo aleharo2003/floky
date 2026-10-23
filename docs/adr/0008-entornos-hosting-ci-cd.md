@@ -1,6 +1,6 @@
 # ADR-0008. Entornos, hosting de bajo costo y CI/CD
 
-- **Estado:** propuesta. Los precios y límites de los planes gratuitos cambian seguido: se verifican el día que se contrata.
+- **Estado:** aceptada el 22/10/2026 (PR #1). Los precios y límites de los planes gratuitos cambian seguido: se verifican el día que se contrata.
 
 ## Contexto
 

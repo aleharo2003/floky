@@ -29,6 +29,7 @@
 | E31. Menú QR | Carta pública por local | v2 |
 | E32. Stock de bebidas | Control de stock empezando por bebidas | v2 |
 | E33. Pedidos desde celulares | Mozos que cargan en la mesa | v2 |
+| E34. Pedidos de delivery | Integración con plataformas de delivery, activable por local | v2 |
 
 ```mermaid
 graph LR
@@ -59,6 +60,7 @@ graph LR
   E30[E30 Multilenguaje v2] -.-> E31
   E12 --> E32[E32 Stock v2]
   E25 --> E33[E33 Celulares v2]
+  E12 --> E34[E34 Delivery v2]
 ```
 
 ---
@@ -140,6 +142,7 @@ Como sistema, quiero los tres roles del local aplicados en cada ruta, para que c
 - Dado el rol mozo, cuando llama a cobrar, anular, descontar o caja, entonces se rechaza.
 - Dado el rol cajero, cuando llama a panel, carta o usuarios, entonces se rechaza.
 - Dado el rol mozo, cuando carga la web, entonces solo ve Salón y Mi turno.
+- Dado cualquier endpoint, cuando valida el acceso, entonces pregunta por un permiso (por ejemplo `cash.close`), no por el nombre del rol. Los roles son conjuntos de permisos; así sumar un rol nuevo después (HU-114) no toca el código.
 
 ### HU-112. Administración del personal con PIN
 **Prioridad:** Must · **Etiquetas:** `frontend`, `backend`, `auth`, `pos`
@@ -159,11 +162,23 @@ Como dueño, quiero que la PC se bloquee cuando nadie la usa, para que nadie tra
 - Dado ninguna actividad durante el tiempo configurado, cuando pasa, entonces la pantalla se bloquea y pide PIN.
 - Dado una pantalla bloqueada, cuando otra persona escribe su PIN, entonces la sesión pasa a esa persona.
 
+### HU-114. Roles configurables
+**Prioridad:** Could · **Versión:** v1.x · **Etiquetas:** `seguridad`, `auth`, `admin`
+
+Como dueño, quiero crear roles con los permisos que elija (por ejemplo, un encargado), para adaptar el sistema a cómo trabaja mi local.
+
+- Dado la lista de permisos del sistema (cobrar, anular, descontar, cerrar caja, administrar personal…), cuando creo un rol, entonces elijo cuáles tiene.
+- Dado una persona con ese rol, cuando intenta una acción, entonces se permite o se rechaza según los permisos del rol.
+- Dado los roles de fábrica (dueño, cajero, mozo, contador), cuando se crea un local, entonces ya existen y no se pueden borrar.
+- Dado un cambio de permisos, cuando ocurre, entonces queda auditado.
+
+> Para que esto sea simple después, desde el MVP el código pregunta por permisos y no por roles (HU-111).
+
 ---
 
 ## E12. Carta y salón
 
-Lo que el local configura una vez y cambia a veces. Se edita en el servidor local, solo el dueño, y sube a la nube.
+Lo que el local configura una vez y cambia a veces. La carta se edita en la nube, desde el portal del dueño, y baja al local (ADR-0010). Mesas y mozos se configuran en el servidor local.
 
 ### HU-120. Categorías y productos con código
 **Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `pos`, `carta` · **Diagramas:** CLA-01, DOM-03
@@ -173,7 +188,8 @@ Como dueño, quiero administrar los productos con su código numérico, precio, 
 - Dado un producto, cuando lo guardo, entonces el código es único en el local.
 - Dado un producto con ventas, cuando lo desactivo, entonces sale de la carta y sigue en las ventas pasadas.
 - Dado un cambio de precio, cuando lo guardo, entonces las mesas abiertas conservan el precio con el que se cargaron.
-- Dado un cambio en la carta, cuando se guarda, entonces deja su fila en el outbox para subir a la nube.
+- Dado un cambio en la carta, cuando se guarda en el portal, entonces el servidor local lo recibe en su próxima sincronización y la caja muestra "carta actualizada a las HH:MM" (ADR-0010).
+- Dado el servidor local, cuando muestra la carta, entonces es de solo lectura.
 
 ### HU-121. Aclaraciones (modificadores)
 **Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `pos`, `carta`
@@ -190,8 +206,9 @@ Como dueño, quiero definir sectores, números de mesa, capacidad y mozos, para 
 
 - Dado un número de mesa, cuando la creo, entonces es único en el local.
 - Dado una mesa con sesión abierta, cuando intento eliminarla, entonces no se permite.
+- Dado un local con la función "mesas y sectores" apagada (HU-247), cuando se abre un pedido, entonces se identifica por mozo y un nombre o número libre, sin mapa de mesas.
 
-> Nota: confirmar con cada local si trabaja con mesas numeradas y sectores, o solo con mozos (P-05).
+> Hay locales que trabajan solo con mozos y otros con mesas numeradas. Por eso es una función activable.
 
 ### HU-123. Importar la carta del sistema anterior
 **Prioridad:** Should · **Etiquetas:** `datos`, `pos`, `carta`
@@ -456,7 +473,8 @@ Como cajero, quiero que una factura rechazada o sin respuesta quede pendiente y 
 - Dado que ARCA rechaza, cuando responde, entonces la venta queda pendiente con el motivo y puedo reintentar o dejarla para después.
 - Dado un timeout, cuando el worker reintenta, entonces primero pregunta a ARCA si ese número quedó autorizado y usa esa respuesta.
 - Dado facturas pendientes, cuando vuelve ARCA o internet, entonces se reintentan en orden sin que nadie lo haga.
-- Dado que no hay internet, cuando cobro, entonces entrego un ticket provisorio "no válido como factura" y la venta queda pendiente de CAE.
+- Dado que no hay internet y hay un CAEA vigente, cuando se factura, entonces se emite con CAEA (HU-169).
+- Dado que no hay internet ni CAEA vigente, cuando se factura, entonces se entrega un ticket provisorio "no válido como factura" y la venta queda pendiente de CAE.
 - Dado facturas pendientes al cierre, cuando se arma el reporte del turno, entonces muestra cuántas y por cuánto.
 
 ### HU-165. Nota de crédito
@@ -475,24 +493,38 @@ Como cliente, quiero una factura legible con el QR de ARCA, para poder verificar
 - Dado una factura autorizada, cuando se muestra o imprime, entonces tiene emisor, receptor, detalle, CAE, vencimiento y el QR.
 - Dado el QR, cuando se arma, entonces es la URL `https://www.arca.gob.ar/fe/qr/?p=` con el JSON versión 1 en Base64 (`ver`, `fecha`, `cuit`, `ptoVta`, `tipoCmp`, `nroCmp`, `importe`, `moneda`, `ctz`, `tipoDocRec`, `nroDocRec`, `tipoCodAut`, `codAut`), con `tipoCodAut` "E" para CAE o "A" para CAEA.
 
-### HU-167. Factura A a un cliente con CUIT
-**Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `fiscal`
+### HU-167. Facturas A, B y C según emisor y receptor
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal`
 
-Como cajero, quiero facturar a una empresa, para que los clientes que necesitan Factura A la reciban.
+Como cajero, quiero que el sistema elija el tipo de comprobante correcto, para facturar a cualquier cliente sin pensar en la norma.
 
-- Dado un CUIT válido, cuando lo cargo, entonces el tipo de factura y el desglose de IVA siguen la condición del receptor.
+- Dado un local responsable inscripto y un receptor con CUIT responsable inscripto, cuando facturo, entonces sale Factura A con el IVA discriminado.
+- Dado un local responsable inscripto y un consumidor final o monotributista, cuando facturo, entonces sale Factura B.
+- Dado un local monotributista, cuando facturo, entonces sale Factura C.
+- Dado cualquier tipo de factura, cuando se anula, entonces la nota de crédito es del mismo tipo (A, B o C).
 - Dado un CUIT inválido, cuando lo cargo, entonces se rechaza antes de llamar a ARCA.
 
-> No está en el prototipo (solo Factura B). Confirmar con el contador de cada local si emite A, B o C (P-09).
+> El sistema se ofrece a distintos negocios, así que no puede quedar atado a un solo tipo de factura.
 
 ### HU-168. Spike: contingencia con CAEA (RG 5782)
-**Prioridad:** Should · **Etiquetas:** `spike`, `fiscal` · **Diagramas:** TEC-03
+**Prioridad:** Must · **Etiquetas:** `spike`, `fiscal` · **Diagramas:** TEC-03
 
-Como equipo, queremos saber qué costaría emitir con CAEA durante un corte, para decidir con el contador entre CAEA y ticket provisorio.
+Como equipo, queremos probar el circuito de CAEA en homologación, para implementar HU-169 con hechos y no con suposiciones.
 
 - Dado la RG 5782/2025, cuando termina el spike, entonces está escrito qué hace falta: punto de venta específico, solicitud quincenal (hasta 5 días antes de cada período), informe de lo emitido hasta el octavo día posterior y cómo cambia el QR.
 - Dado homologación, cuando termina el spike, entonces se pidió un CAEA de prueba y se informó un comprobante.
-- Dado el resultado, cuando se presenta, entonces hay una estimación para implementarlo y una recomendación.
+- Dado el resultado, cuando se presenta, entonces hay una estimación para implementar HU-169.
+
+### HU-169. Facturar con CAEA cuando no hay internet
+**Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `fiscal` · **Diagramas:** EST-01, FUN-03
+
+Como cajero, quiero que la factura salga válida aunque se corte internet, para que el cliente se vaya con su comprobante.
+
+- Dado que hay conexión, cuando faltan 5 días o menos para la próxima quincena, entonces el servidor local pide el CAEA y lo guarda. Si falla, reintenta y avisa al dueño.
+- Dado que no hay internet y hay un CAEA vigente, cuando se factura, entonces se emite con el CAEA en su punto de venta específico, con su propia numeración, y se imprime con el QR (`tipoCodAut` "A").
+- Dado una factura emitida con CAEA, cuando el cajero la ve, entonces dice "emitida en contingencia". El cajero no tiene que elegir nada.
+- Dado comprobantes emitidos con CAEA, cuando vuelve la conexión, entonces se informan a ARCA.
+- Dado el fin de una quincena, cuando quedan comprobantes con CAEA sin informar, o el CAEA no se usó, entonces el sistema lo informa dentro del plazo (hasta el octavo día corrido después del fin del período) y alerta al dueño y al equipo si algo falla.
 
 ---
 
@@ -534,6 +566,9 @@ Como dueño, quiero que las bebidas salgan en la barra y la comida en la cocina,
 
 - Dado una categoría asignada a una impresora, cuando se envía una comanda, entonces cada línea sale donde corresponde.
 - Dado un ticket impreso, cuando lo reimprimo, entonces dice "copia" y la reimpresión queda auditada.
+- Dado un local con una sola impresora, cuando se envía una comanda, entonces sale en esa impresora sin configurar nada más.
+
+> En el primer local hay una sola impresora, en la barra junto a la caja, que imprime todo: tickets y comandas.
 
 ---
 
@@ -693,13 +728,14 @@ Como desarrollador, quiero las tablas de la libreta del dueño, para representar
 - Dado un movimiento, cuando corresponde a un local, entonces lo indica (`tenant_id` opcional), para el resultado por local y total.
 - Dado movimientos en el tiempo, cuando se consultan, entonces se puede calcular el saldo de cualquier período.
 
-### HU-211. Crear, editar y borrar movimientos
+### HU-211. Crear, editar y anular movimientos
 **Prioridad:** Must · **Etiquetas:** `backend`, `frontend`, `finanzas` · **Diagramas:** FUN-06
 
 Como dueño, quiero cargar y corregir mis movimientos, para que la libreta refleje la realidad.
 
 - Dado datos válidos, cuando guardo un movimiento, entonces se guarda y aparece en la lista de su mes.
-- Dado un movimiento existente, cuando lo edito o lo borro, entonces se aplica, con confirmación para el borrado.
+- Dado un movimiento existente, cuando lo edito, entonces se aplica y la auditoría guarda el antes y el después.
+- Dado un movimiento cargado por error, cuando lo anulo con motivo, entonces deja de sumar en los saldos y sigue visible como anulado. No hay borrado.
 - Dado datos inválidos (importe cero o negativo, sin categoría, sin fecha), cuando guardo, entonces veo un error claro y no se escribe nada.
 - Dado el teclado, cuando cargo un movimiento, entonces lo puedo hacer sin el mouse.
 
@@ -719,6 +755,7 @@ Como dueño, quiero el saldo del período y un resumen mensual por categoría, p
 - Dado un mes, cuando lo abro, entonces veo total de ingresos, total de egresos y saldo.
 - Dado un mes, cuando miro el resumen, entonces veo el total y la cantidad de movimientos de cada categoría.
 - Dado la pantalla, cuando busco cifras de ventas, entonces no hay.
+- Dado las salidas de caja que llegan sincronizadas desde el local, cuando miro el mes, entonces aparecen como movimientos de solo lectura marcados "de caja" y suman en el saldo, así nadie las carga dos veces.
 
 ### HU-214. Acceso solo del dueño y auditoría
 **Prioridad:** Must · **Etiquetas:** `seguridad`, `auditoria`, `finanzas`
@@ -731,7 +768,7 @@ Como dueño, quiero que nadie más abra mis finanzas y que cada cambio quede reg
 - Dado que el dueño sale de la pantalla, cierra sesión o queda inactivo, cuando vuelve, entonces se pide la clave de nuevo.
 - Dado los roles cajero, mozo o contador, cuando miran la barra, entonces el candado no está.
 - Dado cualquiera de esos roles, cuando escribe la URL o llama directo a la API, entonces se lo redirige o recibe 403.
-- Dado un alta, edición o borrado, cuando ocurre, entonces se escribe una entrada de auditoría en la misma transacción con actor, acción, antes y después.
+- Dado un alta, edición o anulación, cuando ocurre, entonces se escribe una entrada de auditoría en la misma transacción con actor, acción, antes y después.
 
 ---
 
@@ -812,6 +849,8 @@ Como cajero, quiero terminar una venta cobrada sin emitir factura, para cerrar l
 - Dado una venta "sin comprobante", cuando alguien intenta facturarla después, entonces se rechaza.
 
 > A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.
+>
+> En el sistema anterior estas ventas aparecen como "invitación". Al migrar el historial (HU-280) se importan como ventas sin comprobante.
 
 ### HU-227. Rango de fechas en Mis finanzas y en el panel
 **Prioridad:** Should · **Etiquetas:** `backend`, `frontend`, `finanzas`, `reportes`
@@ -923,7 +962,7 @@ Como administrador de la plataforma, quiero dar de alta un local con sus datos, 
 - Dado un CUIT con dígito verificador inválido, cuando lo guardo, entonces se rechaza.
 - Dado el alta, cuando ocurre, entonces queda auditada.
 
-> Pendiente P-03: un mismo CUIT con varios locales.
+> Hoy no hay locales que compartan CUIT, pero el modelo lo soporta: cada local es un tenant con su CUIT y su punto de venta (ADR-0004).
 
 ### HU-241. Aislamiento entre locales
 **Prioridad:** Must · **Etiquetas:** `tenants`, `seguridad`, `tests` · **Diagramas:** ARQ-04
@@ -983,6 +1022,19 @@ Como dueño, quiero que Mis finanzas no se pierda nunca, porque solo vive en la 
 - Dado la base de la nube, cuando es de noche, entonces un job hace `pg_dump`, lo cifra y lo guarda fuera del proveedor de la base, con retención documentada.
 - Dado un backup, cuando se restaura en un entorno aislado al menos una vez por mes, entonces se marca verificado. Un backup sin restauración probada no cuenta.
 
+
+### HU-247. Funciones activables por local
+**Prioridad:** Must · **Etiquetas:** `tenants`, `backend`, `frontend`
+
+Como administrador de la plataforma, quiero prender o apagar funciones en cada local, para ofrecer el sistema a distintos tipos de negocio sin cambiar código.
+
+- Dado un local, cuando configuro sus funciones (mesas y sectores, impresora de cocina, cajón de dinero, stock de bebidas, delivery), entonces cada una se puede prender o apagar.
+- Dado una función apagada, cuando el personal usa el sistema, entonces no ve sus pantallas ni sus opciones, y la API rechaza sus endpoints.
+- Dado un cambio de funciones en la nube, cuando el servidor local sincroniza, entonces lo aplica (HU-255).
+- Dado un local nuevo, cuando se crea, entonces arranca con un conjunto básico: sin mesas numeradas, una sola impresora, sin cajón y sin stock.
+
+> El sistema se piensa para varios clientes. Esta story es la que permite que cada uno use solo lo que necesita.
+
 ---
 
 ## E25. Servidor local
@@ -999,7 +1051,7 @@ Como instalador, quiero instalar el servidor local con un solo instalador, para 
 - Dado un corte de luz, cuando vuelve, entonces todo arranca solo y la caja vuelve a estar disponible sin intervención.
 - Dado la carpeta de instalación, cuando la reviso, entonces la configuración sensible está protegida con permisos de NTFS y DPAPI.
 
-> Pendiente P-12: qué PC tiene el local.
+> Requisitos mínimos del equipo en HU-256.
 
 ### HU-251. Servir la caja en la red del local
 **Prioridad:** Must · **Etiquetas:** `local`, `frontend`
@@ -1050,6 +1102,18 @@ Como equipo, queremos ver el estado de cada servidor local y cambiar su configur
 - Dado un cambio de configuración en la nube (intervalo X, canal, ventana de actualización), cuando el servidor sincroniza, entonces lo aplica.
 - Dado el portal, cuando el dueño o el equipo lo miran, entonces ven el estado de cada local.
 
+
+### HU-256. Requisitos mínimos del equipo del local
+**Prioridad:** Must · **Etiquetas:** `local`, `ops`, `docs`
+
+Como equipo, queremos requisitos mínimos de hardware y de operación escritos y probados, para saber si la PC de un local sirve antes de instalar.
+
+- Dado el servidor local con datos de volumen real, cuando se mide en una PC de referencia, entonces quedan documentados el mínimo de procesador, memoria y disco, y las versiones de Windows soportadas.
+- Dado el instalador, cuando corre en una PC por debajo del mínimo, entonces avisa antes de instalar.
+- Dado la guía de instalación, cuando se lee, entonces recomienda una UPS y que la PC quede prendida en el horario del local, y explica qué pasa si se apaga de golpe.
+
+> El primer local tiene Windows 10, sin UPS, y la PC se apaga al cerrar. Windows 10 ya no tiene soporte general: los parches de seguridad siguen solo con el programa ESU de Microsoft, hasta el 12/10/2027. Hay que planificar el cambio de equipo o de versión antes de esa fecha.
+
 ---
 
 ## E26. Sincronización local → nube
@@ -1077,13 +1141,15 @@ Como dueño, quiero que los datos suban solos cada X, para verlos desde afuera s
 
 > Pendiente P-02: valor de X.
 
-### HU-262. Envío al cerrar la caja
+### HU-262. Envío al cerrar la caja y a pedido
 **Prioridad:** Must · **Etiquetas:** `sync`, `caja` · **Diagramas:** FUN-04
 
 Como dueño, quiero que al cerrar la caja se suba todo, para ver el cierre del turno esa misma noche.
 
 - Dado un cierre confirmado, cuando termina, entonces se dispara un envío inmediato.
 - Dado que no hay internet, cuando se cierra, entonces el cierre se completa igual y la pantalla avisa "se va a enviar cuando vuelva la conexión".
+- Dado el cajero o el dueño, cuando aprietan "Enviar ahora" (por ejemplo, porque el contador necesita los datos en ese momento), entonces se envían los pendientes sin esperar el intervalo y la pantalla muestra el resultado: cuántos se enviaron, a qué hora, o el error.
+- Dado un envío en curso, cuando alguien aprieta "Enviar ahora" otra vez, entonces no se dispara otro en paralelo.
 
 ### HU-263. Ingesta idempotente en la nube
 **Prioridad:** Must · **Etiquetas:** `sync`, `backend`, `api` · **Diagramas:** TEC-04
@@ -1109,7 +1175,7 @@ Como panel y como contador, queremos tablas pensadas para consultar, para que la
 
 Como dueño, quiero saber si lo que veo está al día, para no tomar decisiones con datos viejos.
 
-- Dado la caja, cuando la miro, entonces el dueño ve pendientes de envío y hora del último envío confirmado.
+- Dado la caja, cuando la miro, entonces el cajero y el dueño ven los pendientes de envío y la hora del último envío confirmado.
 - Dado el portal, cuando lo miro, entonces cada local muestra la hora del último lote aplicado.
 - Dado un local que no sincroniza hace más del umbral, o dos lotes fallidos seguidos, cuando se detecta, entonces se manda una alerta por email al dueño y al equipo.
 
@@ -1163,7 +1229,7 @@ Como dueño, quiero que el primer comprobante del sistema nuevo siga la numeraci
 - Dado el período de ensayo en paralelo, cuando se trabaja, entonces solo un sistema emite comprobantes reales; el otro factura en homologación o no factura.
 - Dado el corte, cuando se hace, entonces queda un acta con último número del sistema anterior, primer número del sistema nuevo y hora.
 
-> Depende de P-08 (qué cuenta como venta en el sistema anterior) y de una copia actual de la base (P-15).
+> Depende de P-08 (qué cuenta como venta en el sistema anterior) y de una copia actual de la base, que el cliente puede entregar.
 
 ### HU-281. Importar mozos y clientes del sistema anterior
 **Prioridad:** Should · **Etiquetas:** `datos`
@@ -1233,7 +1299,7 @@ Como turista, quiero ver la carta en mi idioma, para entender qué pido.
 
 ## E32. Stock de bebidas (v2)
 
-Fuera del MVP. El stock general queda fuera de alcance; esta épica cubre el control de bebidas pedido para v2 (confirmar, P-18).
+Fuera del MVP. El stock general queda fuera de alcance; esta épica cubre el control de bebidas pedido para v2. Es una función activable por local (HU-247).
 
 ### HU-320. Productos con stock controlado
 **Prioridad:** Should · **Versión:** v2 · **Etiquetas:** `stock` · **Diagramas:** FUT-02
@@ -1285,5 +1351,19 @@ Como mozo, quiero tomar el pedido en la mesa con el celular, para no ir y volver
 
 - Dado un celular en la red del local registrado como terminal, cuando ingreso con mi PIN, entonces veo el salón, abro mesas y cargo comandas con una pantalla pensada para tocar.
 - Dado el envío, cuando lo confirmo, entonces sale en la cocina igual que desde la caja.
+
+---
+
+## E34. Pedidos de delivery (v2)
+
+Fuera del MVP. Hoy los locales no lo usan, pero es algo que se puede ofrecer a otros clientes. Es una función activable por local (HU-247).
+
+### HU-340. Spike: integración con plataformas de delivery
+**Prioridad:** Could · **Versión:** v2 · **Etiquetas:** `spike`, `delivery`
+
+Como equipo, queremos saber qué cuesta integrar plataformas de delivery, para decidir si lo ofrecemos y a qué precio.
+
+- Dado las plataformas más usadas en la zona, cuando termina el spike, entonces está escrito qué API ofrecen, qué piden para integrarse (convenio, homologación, costos) y cómo entraría un pedido al salón.
+- Dado el resultado, cuando se presenta, entonces hay una recomendación y una estimación.
 
 ---

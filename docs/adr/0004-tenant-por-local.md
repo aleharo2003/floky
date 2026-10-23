@@ -1,6 +1,6 @@
 # ADR-0004. Cada local es un tenant
 
-- **Estado:** propuesta. El modelo (tenant = local) está acordado; el mecanismo de aislamiento se valida al implementar la primera API de la nube.
+- **Estado:** aceptada el 22/10/2026 (PR #1). El mecanismo de aislamiento se valida al implementar la primera API de la nube; si cambia, va en un ADR nuevo.
 
 ## Contexto
 
@@ -26,4 +26,6 @@ El sistema tiene que servir a muchos locales sin cambiar el esquema. Hay que def
 
 - El usuario de base con el que corre la app en la nube no puede ser superusuario ni dueño de las tablas, porque si no RLS no aplica. Las migraciones corren con otro usuario.
 - El esquema de las tablas replicadas es el mismo en el local y en la nube.
-- Queda abierto si un mismo CUIT con dos locales usa puntos de venta distintos o comparte uno (ver preguntas abiertas del backlog).
+- Hoy no hay locales que compartan CUIT, pero el modelo lo soporta: cada local tiene su CUIT y su punto de venta.
+- Los roles son conjuntos de permisos y el código valida permisos, no nombres de rol. Así se pueden sumar roles nuevos (por ejemplo, un encargado) sin tocar el código.
+- Cada local puede prender o apagar funciones (mesas, impresora de cocina, cajón, stock, delivery), para ofrecer el sistema a distintos negocios.

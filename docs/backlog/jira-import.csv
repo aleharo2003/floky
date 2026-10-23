@@ -48,7 +48,8 @@ Diagramas: FUN-01 (docs/diagramas/)",High,mvp,must,backend,frontend,auth,pos,,,
 
 - Dado el rol mozo, cuando llama a cobrar, anular, descontar o caja, entonces se rechaza.
 - Dado el rol cajero, cuando llama a panel, carta o usuarios, entonces se rechaza.
-- Dado el rol mozo, cuando carga la web, entonces solo ve Salón y Mi turno.",High,mvp,must,seguridad,auth,pos,,,,
+- Dado el rol mozo, cuando carga la web, entonces solo ve Salón y Mi turno.
+- Dado cualquier endpoint, cuando valida el acceso, entonces pregunta por un permiso (por ejemplo {{cash.close}}), no por el nombre del rol. Los roles son conjuntos de permisos; así sumar un rol nuevo después (HU-114) no toca el código.",High,mvp,must,seguridad,auth,pos,,,,
 112,1011,Story,HU-112. Administración del personal con PIN,"Como dueño, quiero crear, desactivar y editar al personal y blanquear su PIN, para controlar quién usa el sistema.
 
 - Dado una persona nueva, cuando la creo con nombre, rol y PIN, entonces aparece en la pantalla de ingreso.
@@ -59,13 +60,22 @@ Diagramas: FUN-01 (docs/diagramas/)",High,mvp,must,backend,frontend,auth,pos,,,
 
 - Dado ninguna actividad durante el tiempo configurado, cuando pasa, entonces la pantalla se bloquea y pide PIN.
 - Dado una pantalla bloqueada, cuando otra persona escribe su PIN, entonces la sesión pasa a esa persona.",Medium,mvp,should,frontend,auth,pos,,,,
-1012,,Epic,E12. Carta y salón,"Lo que el local configura una vez y cambia a veces. Se edita en el servidor local, solo el dueño, y sube a la nube.",,mvp,,,,,,,,
+114,1011,Story,HU-114. Roles configurables,"Como dueño, quiero crear roles con los permisos que elija (por ejemplo, un encargado), para adaptar el sistema a cómo trabaja mi local.
+
+- Dado la lista de permisos del sistema (cobrar, anular, descontar, cerrar caja, administrar personal…), cuando creo un rol, entonces elijo cuáles tiene.
+- Dado una persona con ese rol, cuando intenta una acción, entonces se permite o se rechaza según los permisos del rol.
+- Dado los roles de fábrica (dueño, cajero, mozo, contador), cuando se crea un local, entonces ya existen y no se pueden borrar.
+- Dado un cambio de permisos, cuando ocurre, entonces queda auditado.
+
+> Para que esto sea simple después, desde el MVP el código pregunta por permisos y no por roles (HU-111).",Low,v1x,could,seguridad,auth,admin,,,,
+1012,,Epic,E12. Carta y salón,"Lo que el local configura una vez y cambia a veces. La carta se edita en la nube, desde el portal del dueño, y baja al local (ADR-0010). Mesas y mozos se configuran en el servidor local.",,mvp,,,,,,,,
 120,1012,Story,HU-120. Categorías y productos con código,"Como dueño, quiero administrar los productos con su código numérico, precio, categoría y alícuota de IVA, para mantener mi carta.
 
 - Dado un producto, cuando lo guardo, entonces el código es único en el local.
 - Dado un producto con ventas, cuando lo desactivo, entonces sale de la carta y sigue en las ventas pasadas.
 - Dado un cambio de precio, cuando lo guardo, entonces las mesas abiertas conservan el precio con el que se cargaron.
-- Dado un cambio en la carta, cuando se guarda, entonces deja su fila en el outbox para subir a la nube.
+- Dado un cambio en la carta, cuando se guarda en el portal, entonces el servidor local lo recibe en su próxima sincronización y la caja muestra ""carta actualizada a las HH:MM"" (ADR-0010).
+- Dado el servidor local, cuando muestra la carta, entonces es de solo lectura.
 
 Diagramas: CLA-01, DOM-03 (docs/diagramas/)",High,mvp,must,backend,frontend,pos,carta,,,
 121,1012,Story,HU-121. Aclaraciones (modificadores),"Como dueño, quiero definir las aclaraciones que acepta cada categoría o producto, para que la cocina las reciba de forma pareja.
@@ -76,8 +86,9 @@ Diagramas: CLA-01, DOM-03 (docs/diagramas/)",High,mvp,must,backend,frontend,pos,
 
 - Dado un número de mesa, cuando la creo, entonces es único en el local.
 - Dado una mesa con sesión abierta, cuando intento eliminarla, entonces no se permite.
+- Dado un local con la función ""mesas y sectores"" apagada (HU-247), cuando se abre un pedido, entonces se identifica por mozo y un nombre o número libre, sin mapa de mesas.
 
-> Nota: confirmar con cada local si trabaja con mesas numeradas y sectores, o solo con mozos (P-05).",High,mvp,must,backend,frontend,pos,,,,
+> Hay locales que trabajan solo con mozos y otros con mesas numeradas. Por eso es una función activable.",High,mvp,must,backend,frontend,pos,,,,
 123,1012,Story,HU-123. Importar la carta del sistema anterior,"Como dueño, quiero que me carguen los productos y códigos del sistema anterior, para que el personal conserve los códigos que sabe de memoria.
 
 - Dado las tablas de artículos y categorías del sistema anterior (por ejemplo, archivos TopSpeed), cuando corre la importación, entonces se crean los productos activos con el mismo código, nombre, categoría y precio actual.
@@ -233,7 +244,8 @@ Diagramas: TEC-02, EST-01 (docs/diagramas/)",High,mvp,must,backend,frontend,fisc
 - Dado que ARCA rechaza, cuando responde, entonces la venta queda pendiente con el motivo y puedo reintentar o dejarla para después.
 - Dado un timeout, cuando el worker reintenta, entonces primero pregunta a ARCA si ese número quedó autorizado y usa esa respuesta.
 - Dado facturas pendientes, cuando vuelve ARCA o internet, entonces se reintentan en orden sin que nadie lo haga.
-- Dado que no hay internet, cuando cobro, entonces entrego un ticket provisorio ""no válido como factura"" y la venta queda pendiente de CAE.
+- Dado que no hay internet y hay un CAEA vigente, cuando se factura, entonces se emite con CAEA (HU-169).
+- Dado que no hay internet ni CAEA vigente, cuando se factura, entonces se entrega un ticket provisorio ""no válido como factura"" y la venta queda pendiente de CAE.
 - Dado facturas pendientes al cierre, cuando se arma el reporte del turno, entonces muestra cuántas y por cuánto.
 
 Diagramas: TEC-03, EST-01 (docs/diagramas/)",High,mvp,must,backend,frontend,fiscal,,,,
@@ -247,19 +259,31 @@ Diagramas: FUN-05 (docs/diagramas/)",High,mvp,must,backend,frontend,fiscal,diner
 
 - Dado una factura autorizada, cuando se muestra o imprime, entonces tiene emisor, receptor, detalle, CAE, vencimiento y el QR.
 - Dado el QR, cuando se arma, entonces es la URL {{https://www.arca.gob.ar/fe/qr/?p=}} con el JSON versión 1 en Base64 ({{ver}}, {{fecha}}, {{cuit}}, {{ptoVta}}, {{tipoCmp}}, {{nroCmp}}, {{importe}}, {{moneda}}, {{ctz}}, {{tipoDocRec}}, {{nroDocRec}}, {{tipoCodAut}}, {{codAut}}), con {{tipoCodAut}} ""E"" para CAE o ""A"" para CAEA.",High,mvp,must,frontend,fiscal,impresion,,,,
-167,1016,Story,HU-167. Factura A a un cliente con CUIT,"Como cajero, quiero facturar a una empresa, para que los clientes que necesitan Factura A la reciban.
+167,1016,Story,"HU-167. Facturas A, B y C según emisor y receptor","Como cajero, quiero que el sistema elija el tipo de comprobante correcto, para facturar a cualquier cliente sin pensar en la norma.
 
-- Dado un CUIT válido, cuando lo cargo, entonces el tipo de factura y el desglose de IVA siguen la condición del receptor.
+- Dado un local responsable inscripto y un receptor con CUIT responsable inscripto, cuando facturo, entonces sale Factura A con el IVA discriminado.
+- Dado un local responsable inscripto y un consumidor final o monotributista, cuando facturo, entonces sale Factura B.
+- Dado un local monotributista, cuando facturo, entonces sale Factura C.
+- Dado cualquier tipo de factura, cuando se anula, entonces la nota de crédito es del mismo tipo (A, B o C).
 - Dado un CUIT inválido, cuando lo cargo, entonces se rechaza antes de llamar a ARCA.
 
-> No está en el prototipo (solo Factura B). Confirmar con el contador de cada local si emite A, B o C (P-09).",Medium,mvp,should,backend,frontend,fiscal,,,,
-168,1016,Story,HU-168. Spike: contingencia con CAEA (RG 5782),"Como equipo, queremos saber qué costaría emitir con CAEA durante un corte, para decidir con el contador entre CAEA y ticket provisorio.
+> El sistema se ofrece a distintos negocios, así que no puede quedar atado a un solo tipo de factura.",High,mvp,must,backend,frontend,fiscal,,,,
+168,1016,Story,HU-168. Spike: contingencia con CAEA (RG 5782),"Como equipo, queremos probar el circuito de CAEA en homologación, para implementar HU-169 con hechos y no con suposiciones.
 
 - Dado la RG 5782/2025, cuando termina el spike, entonces está escrito qué hace falta: punto de venta específico, solicitud quincenal (hasta 5 días antes de cada período), informe de lo emitido hasta el octavo día posterior y cómo cambia el QR.
 - Dado homologación, cuando termina el spike, entonces se pidió un CAEA de prueba y se informó un comprobante.
-- Dado el resultado, cuando se presenta, entonces hay una estimación para implementarlo y una recomendación.
+- Dado el resultado, cuando se presenta, entonces hay una estimación para implementar HU-169.
 
-Diagramas: TEC-03 (docs/diagramas/)",Medium,mvp,should,spike,fiscal,,,,,
+Diagramas: TEC-03 (docs/diagramas/)",High,mvp,must,spike,fiscal,,,,,
+169,1016,Story,HU-169. Facturar con CAEA cuando no hay internet,"Como cajero, quiero que la factura salga válida aunque se corte internet, para que el cliente se vaya con su comprobante.
+
+- Dado que hay conexión, cuando faltan 5 días o menos para la próxima quincena, entonces el servidor local pide el CAEA y lo guarda. Si falla, reintenta y avisa al dueño.
+- Dado que no hay internet y hay un CAEA vigente, cuando se factura, entonces se emite con el CAEA en su punto de venta específico, con su propia numeración, y se imprime con el QR ({{tipoCodAut}} ""A"").
+- Dado una factura emitida con CAEA, cuando el cajero la ve, entonces dice ""emitida en contingencia"". El cajero no tiene que elegir nada.
+- Dado comprobantes emitidos con CAEA, cuando vuelve la conexión, entonces se informan a ARCA.
+- Dado el fin de una quincena, cuando quedan comprobantes con CAEA sin informar, o el CAEA no se usó, entonces el sistema lo informa dentro del plazo (hasta el octavo día corrido después del fin del período) y alerta al dueño y al equipo si algo falla.
+
+Diagramas: EST-01, FUN-03 (docs/diagramas/)",High,mvp,must,backend,frontend,fiscal,,,,
 1017,,Epic,E17. Impresión,"La impresora de referencia es una *Hasar P-250N*: térmica de 80 mm, ESC/POS, serie, USB y Ethernet, con salida para cajón (ADR-0007). El servidor local imprime directo.",,mvp,,,,,,,,
 170,1017,Story,HU-170. Spike: imprimir en la Hasar P-250N,"Como equipo, queremos un ticket impreso en la impresora real desde el servidor local, para probar el camino antes de construirlo.
 
@@ -281,7 +305,10 @@ Diagramas: TEC-01 (docs/diagramas/)",High,mvp,must,local,impresion,,,,,
 173,1017,Story,HU-173. Ruteo de impresoras y reimpresión,"Como dueño, quiero que las bebidas salgan en la barra y la comida en la cocina, para que cada puesto reciba lo suyo.
 
 - Dado una categoría asignada a una impresora, cuando se envía una comanda, entonces cada línea sale donde corresponde.
-- Dado un ticket impreso, cuando lo reimprimo, entonces dice ""copia"" y la reimpresión queda auditada.",Medium,mvp,should,impresion,backend,,,,,
+- Dado un ticket impreso, cuando lo reimprimo, entonces dice ""copia"" y la reimpresión queda auditada.
+- Dado un local con una sola impresora, cuando se envía una comanda, entonces sale en esa impresora sin configurar nada más.
+
+> En el primer local hay una sola impresora, en la barra junto a la caja, que imprime todo: tickets y comandas.",Medium,mvp,should,impresion,backend,,,,,
 1018,,Epic,E18. Panel del dueño,Vive en la nube y lee la réplica que mandan los locales (ADR-0005). Muestra siempre de qué hora son los datos.,,mvp,,,,,,,,
 180,1018,Story,HU-180. API de reportes,"Como panel, quiero cifras agregadas por período, para que la pantalla cargue rápido.
 
@@ -366,10 +393,11 @@ Diagramas: FUN-07 (docs/diagramas/)",High,mvp,must,seguridad,auth,contador,,,,
 - Dado movimientos en el tiempo, cuando se consultan, entonces se puede calcular el saldo de cualquier período.
 
 Diagramas: CLA-02, DAT-02 (docs/diagramas/)",High,mvp,must,backend,db,finanzas,,,,
-211,1021,Story,"HU-211. Crear, editar y borrar movimientos","Como dueño, quiero cargar y corregir mis movimientos, para que la libreta refleje la realidad.
+211,1021,Story,"HU-211. Crear, editar y anular movimientos","Como dueño, quiero cargar y corregir mis movimientos, para que la libreta refleje la realidad.
 
 - Dado datos válidos, cuando guardo un movimiento, entonces se guarda y aparece en la lista de su mes.
-- Dado un movimiento existente, cuando lo edito o lo borro, entonces se aplica, con confirmación para el borrado.
+- Dado un movimiento existente, cuando lo edito, entonces se aplica y la auditoría guarda el antes y el después.
+- Dado un movimiento cargado por error, cuando lo anulo con motivo, entonces deja de sumar en los saldos y sigue visible como anulado. No hay borrado.
 - Dado datos inválidos (importe cero o negativo, sin categoría, sin fecha), cuando guardo, entonces veo un error claro y no se escribe nada.
 - Dado el teclado, cuando cargo un movimiento, entonces lo puedo hacer sin el mouse.
 
@@ -382,7 +410,8 @@ Diagramas: FUN-06 (docs/diagramas/)",High,mvp,must,backend,frontend,finanzas,,,,
 
 - Dado un mes, cuando lo abro, entonces veo total de ingresos, total de egresos y saldo.
 - Dado un mes, cuando miro el resumen, entonces veo el total y la cantidad de movimientos de cada categoría.
-- Dado la pantalla, cuando busco cifras de ventas, entonces no hay.",High,mvp,must,backend,frontend,finanzas,reportes,,,
+- Dado la pantalla, cuando busco cifras de ventas, entonces no hay.
+- Dado las salidas de caja que llegan sincronizadas desde el local, cuando miro el mes, entonces aparecen como movimientos de solo lectura marcados ""de caja"" y suman en el saldo, así nadie las carga dos veces.",High,mvp,must,backend,frontend,finanzas,reportes,,,
 214,1021,Story,HU-214. Acceso solo del dueño y auditoría,"Como dueño, quiero que nadie más abra mis finanzas y que cada cambio quede registrado, para que la libreta sea privada y trazable.
 
 - Dado el dueño, cuando mira la barra, entonces Mis finanzas es un candado chico a la derecha, no una pestaña, y al tocarlo pide una clave propia.
@@ -391,7 +420,7 @@ Diagramas: FUN-06 (docs/diagramas/)",High,mvp,must,backend,frontend,finanzas,,,,
 - Dado que el dueño sale de la pantalla, cierra sesión o queda inactivo, cuando vuelve, entonces se pide la clave de nuevo.
 - Dado los roles cajero, mozo o contador, cuando miran la barra, entonces el candado no está.
 - Dado cualquiera de esos roles, cuando escribe la URL o llama directo a la API, entonces se lo redirige o recibe 403.
-- Dado un alta, edición o borrado, cuando ocurre, entonces se escribe una entrada de auditoría en la misma transacción con actor, acción, antes y después.",High,mvp,must,seguridad,auditoria,finanzas,,,,
+- Dado un alta, edición o anulación, cuando ocurre, entonces se escribe una entrada de auditoría en la misma transacción con actor, acción, antes y después.",High,mvp,must,seguridad,auditoria,finanzas,,,,
 1022,,Epic,E22. Trazabilidad del turno,"Entender por qué no cierra una caja: qué pasó en cada mesa, quién lo hizo y qué pago se registró con el medio equivocado. Un registro de eventos escrito en la misma transacción que cada acción, y tres vistas de lectura (mesa, mozo, turno).",,mvp,,,,,,,,
 220,1022,Story,"HU-220. Registro de eventos de mesas, ventas y turno","Como dueño, quiero cada paso de una mesa registrado con hora y usuario, para rastrear una diferencia de caja.
 
@@ -442,7 +471,9 @@ Diagramas: FUN-04 (docs/diagramas/)",High,mvp,must,backend,frontend,pos,caja,din
 - Dado el contador, cuando abre facturación, entonces estas ventas están en una lista aparte (fecha, medio de pago, total) y no suman a los totales facturados.
 - Dado una venta ""sin comprobante"", cuando alguien intenta facturarla después, entonces se rechaza.
 
-> A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.",High,mvp,must,backend,frontend,pos,fiscal,contador,,
+> A confirmar con el contador antes de producción: qué ventas se pueden cerrar así. Nota de ingeniería, no asesoramiento impositivo.
+>
+> En el sistema anterior estas ventas aparecen como ""invitación"". Al migrar el historial (HU-280) se importan como ventas sin comprobante.",High,mvp,must,backend,frontend,pos,fiscal,contador,,
 227,1022,Story,HU-227. Rango de fechas en Mis finanzas y en el panel,"Como dueño, quiero un filtro desde/hasta con atajos, para mirar cualquier período y no solo meses enteros.
 
 - Dado Mis finanzas o el panel, cuando elijo hoy, esta semana (desde el lunes) o este mes, entonces la lista, los totales y el resumen siguen la elección.
@@ -517,7 +548,7 @@ Diagramas: TEC-05 (docs/diagramas/)",High,mvp,must,devops,,,,,,
 - Dado un CUIT con dígito verificador inválido, cuando lo guardo, entonces se rechaza.
 - Dado el alta, cuando ocurre, entonces queda auditada.
 
-> Pendiente P-03: un mismo CUIT con varios locales.
+> Hoy no hay locales que compartan CUIT, pero el modelo lo soporta: cada local es un tenant con su CUIT y su punto de venta (ADR-0004).
 
 Diagramas: ARQ-04, DAT-02 (docs/diagramas/)",High,mvp,must,tenants,backend,,,,,
 241,1024,Story,HU-241. Aislamiento entre locales,"Como dueño, quiero que ningún otro local vea mis datos, para confiar en el sistema.
@@ -562,6 +593,14 @@ Diagramas: DAT-01, DAT-02 (docs/diagramas/)",High,mvp,must,seguridad,auditoria,,
 - Dado un backup, cuando se restaura en un entorno aislado al menos una vez por mes, entonces se marca verificado. Un backup sin restauración probada no cuenta.
 
 Diagramas: OPS-02 (docs/diagramas/)",High,mvp,must,ops,datos,,,,,
+247,1024,Story,HU-247. Funciones activables por local,"Como administrador de la plataforma, quiero prender o apagar funciones en cada local, para ofrecer el sistema a distintos tipos de negocio sin cambiar código.
+
+- Dado un local, cuando configuro sus funciones (mesas y sectores, impresora de cocina, cajón de dinero, stock de bebidas, delivery), entonces cada una se puede prender o apagar.
+- Dado una función apagada, cuando el personal usa el sistema, entonces no ve sus pantallas ni sus opciones, y la API rechaza sus endpoints.
+- Dado un cambio de funciones en la nube, cuando el servidor local sincroniza, entonces lo aplica (HU-255).
+- Dado un local nuevo, cuando se crea, entonces arranca con un conjunto básico: sin mesas numeradas, una sola impresora, sin cajón y sin stock.
+
+> El sistema se piensa para varios clientes. Esta story es la que permite que cada uno use solo lo que necesita.",High,mvp,must,tenants,backend,frontend,,,,
 1025,,Epic,E25. Servidor local,"El servidor de cada local: Django en modo local con su PostgreSQL, como servicio de Windows (ADR-0001, ADR-0003). Cumple el principio 3 de {{CONTRIBUTING.md}}: se actualiza solo, informa versión, último sync y errores, y su configuración se cambia desde la nube.",,mvp,,,,,,,,
 250,1025,Story,HU-250. Instalar el servidor local como servicio,"Como instalador, quiero instalar el servidor local con un solo instalador, para dejar el local funcionando sin pasos manuales.
 
@@ -570,7 +609,7 @@ Diagramas: OPS-02 (docs/diagramas/)",High,mvp,must,ops,datos,,,,,
 - Dado un corte de luz, cuando vuelve, entonces todo arranca solo y la caja vuelve a estar disponible sin intervención.
 - Dado la carpeta de instalación, cuando la reviso, entonces la configuración sensible está protegida con permisos de NTFS y DPAPI.
 
-> Pendiente P-12: qué PC tiene el local.
+> Requisitos mínimos del equipo en HU-256.
 
 Diagramas: ARQ-02, OPS-01 (docs/diagramas/)",High,mvp,must,local,ops,,,,,
 251,1025,Story,HU-251. Servir la caja en la red del local,"Como cajero, quiero abrir la caja en el navegador de cualquier PC del local, para no instalar nada en cada equipo.
@@ -610,6 +649,13 @@ Diagramas: TEC-06, OPS-01 (docs/diagramas/)",High,mvp,must,local,devops,,,,,
 - Dado el portal, cuando el dueño o el equipo lo miran, entonces ven el estado de cada local.
 
 Diagramas: OPS-03 (docs/diagramas/)",High,mvp,must,local,observabilidad,,,,,
+256,1025,Story,HU-256. Requisitos mínimos del equipo del local,"Como equipo, queremos requisitos mínimos de hardware y de operación escritos y probados, para saber si la PC de un local sirve antes de instalar.
+
+- Dado el servidor local con datos de volumen real, cuando se mide en una PC de referencia, entonces quedan documentados el mínimo de procesador, memoria y disco, y las versiones de Windows soportadas.
+- Dado el instalador, cuando corre en una PC por debajo del mínimo, entonces avisa antes de instalar.
+- Dado la guía de instalación, cuando se lee, entonces recomienda una UPS y que la PC quede prendida en el horario del local, y explica qué pasa si se apaga de golpe.
+
+> El primer local tiene Windows 10, sin UPS, y la PC se apaga al cerrar. Windows 10 ya no tiene soporte general: los parches de seguridad siguen solo con el programa ESU de Microsoft, hasta el 12/10/2027. Hay que planificar el cambio de equipo o de versión antes de esa fecha.",High,mvp,must,local,ops,docs,,,,
 1026,,Epic,E26. Sincronización local → nube,"El outbox, el envío cada X y al cerrar caja, la ingesta en la nube y los controles (ADR-0005).",,mvp,,,,,,,,
 260,1026,Story,HU-260. Outbox transaccional,"Como sistema, quiero cada cambio replicable anotado en la misma transacción que el cambio, para que nunca se pierda uno.
 
@@ -628,10 +674,12 @@ Diagramas: TEC-04, DAT-01 (docs/diagramas/)",High,mvp,must,sync,backend,db,,,,
 > Pendiente P-02: valor de X.
 
 Diagramas: TEC-04, EST-04 (docs/diagramas/)",High,mvp,must,sync,local,,,,,
-262,1026,Story,HU-262. Envío al cerrar la caja,"Como dueño, quiero que al cerrar la caja se suba todo, para ver el cierre del turno esa misma noche.
+262,1026,Story,HU-262. Envío al cerrar la caja y a pedido,"Como dueño, quiero que al cerrar la caja se suba todo, para ver el cierre del turno esa misma noche.
 
 - Dado un cierre confirmado, cuando termina, entonces se dispara un envío inmediato.
 - Dado que no hay internet, cuando se cierra, entonces el cierre se completa igual y la pantalla avisa ""se va a enviar cuando vuelva la conexión"".
+- Dado el cajero o el dueño, cuando aprietan ""Enviar ahora"" (por ejemplo, porque el contador necesita los datos en ese momento), entonces se envían los pendientes sin esperar el intervalo y la pantalla muestra el resultado: cuántos se enviaron, a qué hora, o el error.
+- Dado un envío en curso, cuando alguien aprieta ""Enviar ahora"" otra vez, entonces no se dispara otro en paralelo.
 
 Diagramas: FUN-04 (docs/diagramas/)",High,mvp,must,sync,caja,,,,,
 263,1026,Story,HU-263. Ingesta idempotente en la nube,"Como nube, quiero aplicar cada lote sin duplicar nada aunque llegue dos veces o desordenado, para que la réplica sea confiable.
@@ -651,7 +699,7 @@ Diagramas: TEC-04 (docs/diagramas/)",High,mvp,must,sync,backend,api,,,,
 Diagramas: DAT-02 (docs/diagramas/)",High,mvp,must,sync,backend,db,,,,
 265,1026,Story,HU-265. Estado de la sincronización y alertas,"Como dueño, quiero saber si lo que veo está al día, para no tomar decisiones con datos viejos.
 
-- Dado la caja, cuando la miro, entonces el dueño ve pendientes de envío y hora del último envío confirmado.
+- Dado la caja, cuando la miro, entonces el cajero y el dueño ven los pendientes de envío y la hora del último envío confirmado.
 - Dado el portal, cuando lo miro, entonces cada local muestra la hora del último lote aplicado.
 - Dado un local que no sincroniza hace más del umbral, o dos lotes fallidos seguidos, cuando se detecta, entonces se manda una alerta por email al dueño y al equipo.
 
@@ -681,7 +729,7 @@ Diagramas: OPS-03, EST-04 (docs/diagramas/)",High,mvp,must,sync,observabilidad,,
 - Dado el período de ensayo en paralelo, cuando se trabaja, entonces solo un sistema emite comprobantes reales; el otro factura en homologación o no factura.
 - Dado el corte, cuando se hace, entonces queda un acta con último número del sistema anterior, primer número del sistema nuevo y hora.
 
-> Depende de P-08 (qué cuenta como venta en el sistema anterior) y de una copia actual de la base (P-15).
+> Depende de P-08 (qué cuenta como venta en el sistema anterior) y de una copia actual de la base, que el cliente puede entregar.
 
 Diagramas: OPS-01 (docs/diagramas/)",High,mvp,must,fiscal,ops,,,,,
 281,1028,Story,HU-281. Importar mozos y clientes del sistema anterior,"Como dueño, quiero los mozos y los clientes con CUIT del sistema anterior cargados, para no tipearlos de nuevo.
@@ -718,7 +766,7 @@ Diagramas: FUT-01 (docs/diagramas/)",Medium,v2,should,carta,frontend,,,,,
 - Dado el idioma del navegador, cuando abro la carta, entonces se muestra en ese idioma si existe, y puedo cambiarlo.
 
 Diagramas: FUT-01 (docs/diagramas/)",Low,v2,could,i18n,,,,,,
-1032,,Epic,E32. Stock de bebidas (v2),"Fuera del MVP. El stock general queda fuera de alcance; esta épica cubre el control de bebidas pedido para v2 (confirmar, P-18).",,v2,,,,,,,,
+1032,,Epic,E32. Stock de bebidas (v2),Fuera del MVP. El stock general queda fuera de alcance; esta épica cubre el control de bebidas pedido para v2. Es una función activable por local (HU-247).,,v2,,,,,,,,
 320,1032,Story,HU-320. Productos con stock controlado,"Como dueño, quiero marcar qué productos controlan stock, para empezar por las bebidas sin complicar el resto.
 
 - Dado un producto, cuando lo marco ""controla stock"", entonces tiene existencia, unidad y stock mínimo.
@@ -745,3 +793,8 @@ Diagramas: FUT-02 (docs/diagramas/)",Medium,v2,should,stock,,,,,,
 
 - Dado un celular en la red del local registrado como terminal, cuando ingreso con mi PIN, entonces veo el salón, abro mesas y cargo comandas con una pantalla pensada para tocar.
 - Dado el envío, cuando lo confirmo, entonces sale en la cocina igual que desde la caja.",Medium,v2,should,frontend,pos,,,,,
+1034,,Epic,E34. Pedidos de delivery (v2),"Fuera del MVP. Hoy los locales no lo usan, pero es algo que se puede ofrecer a otros clientes. Es una función activable por local (HU-247).",,v2,,,,,,,,
+340,1034,Story,HU-340. Spike: integración con plataformas de delivery,"Como equipo, queremos saber qué cuesta integrar plataformas de delivery, para decidir si lo ofrecemos y a qué precio.
+
+- Dado las plataformas más usadas en la zona, cuando termina el spike, entonces está escrito qué API ofrecen, qué piden para integrarse (convenio, homologación, costos) y cómo entraría un pedido al salón.
+- Dado el resultado, cuando se presenta, entonces hay una recomendación y una estimación.",Low,v2,could,spike,delivery,,,,,

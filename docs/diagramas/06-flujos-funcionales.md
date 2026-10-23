@@ -63,7 +63,7 @@ flowchart TD
 
 ## FUN-03. Cobrar, facturar o finalizar sin comprobante
 
-**Stories:** HU-136, HU-140, HU-162, HU-164, HU-226, HU-172.
+**Stories:** HU-136, HU-140, HU-162, HU-164, HU-169, HU-226, HU-172.
 
 <!-- diagram: FUN-03 -->
 ```mermaid
@@ -77,7 +77,10 @@ flowchart TD
     F -->|"F9"| G["Sin comprobante<br/>lista aparte para el contador"]
     F -->|"F8 factura"| H["Condición IVA del receptor<br/>consumidor final por defecto"]
     H --> I{"¿Hay internet?"}
-    I -->|"no"| J["Ticket provisorio<br/>no válido como factura"]
+    I -->|"no"| Q{"¿Hay CAEA vigente?"}
+    Q -->|"sí"| R["Factura con CAEA y QR<br/>emitida en contingencia"]
+    R --> S["Se informa a ARCA<br/>al volver internet"]
+    Q -->|"no"| J["Ticket provisorio<br/>no válido como factura"]
     J --> K["Pendiente de CAE<br/>se reintenta solo"]
     I -->|"sí"| L{"¿ARCA aprueba?"}
     L -->|"sí"| M["Factura con CAE y QR impresa"]
@@ -87,7 +90,7 @@ flowchart TD
 
 **Archivos FUN-03:** [SVG](svg/FUN-03.svg) · [PNG](png/FUN-03.png) · [Mermaid](fuentes/FUN-03.mmd).
 
-**Lectura:** el cobro termina en "venta guardada" sin importar lo que pase después. El ticket provisorio está pendiente de validación con el contador (P-10).
+**Lectura:** el cobro termina en "venta guardada" sin importar lo que pase después. Sin internet se usa el CAEA; el ticket provisorio es el último recurso (ADR-0006).
 
 <a id="fun-04"></a>
 

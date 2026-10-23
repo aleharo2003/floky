@@ -8,7 +8,10 @@ flowchart TD
     F -->|"F9"| G["Sin comprobante<br/>lista aparte para el contador"]
     F -->|"F8 factura"| H["Condición IVA del receptor<br/>consumidor final por defecto"]
     H --> I{"¿Hay internet?"}
-    I -->|"no"| J["Ticket provisorio<br/>no válido como factura"]
+    I -->|"no"| Q{"¿Hay CAEA vigente?"}
+    Q -->|"sí"| R["Factura con CAEA y QR<br/>emitida en contingencia"]
+    R --> S["Se informa a ARCA<br/>al volver internet"]
+    Q -->|"no"| J["Ticket provisorio<br/>no válido como factura"]
     J --> K["Pendiente de CAE<br/>se reintenta solo"]
     I -->|"sí"| L{"¿ARCA aprueba?"}
     L -->|"sí"| M["Factura con CAE y QR impresa"]

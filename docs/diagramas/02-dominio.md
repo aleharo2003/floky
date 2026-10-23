@@ -83,18 +83,20 @@ flowchart LR
     subgraph EscribeLocal["Se escribe en el local"]
         A1["Salón, comandas, ventas, pagos"]
         A2["Caja, comprobantes, eventos"]
-        A3["Carta, mesas, personal con PIN"]
+        A3["Mesas, personal con PIN"]
     end
     subgraph EscribeNube["Se escribe en la nube"]
         B1["Locales y membresías"]
         B2["Usuarios con email: dueño y contador"]
         B3["Mis finanzas"]
         B4["Configuración del servidor local"]
+        B5["Carta y precios"]
     end
     EscribeLocal -->|"sube por el outbox"| Replica[("Réplica de lectura en la nube")]
     B4 -->|"baja al sincronizar"| ServidorLocal["Servidor local"]
+    B5 -->|"baja al sincronizar"| ServidorLocal
 ```
 
 **Archivos DOM-03:** [SVG](svg/DOM-03.svg) · [PNG](png/DOM-03.png) · [Mermaid](fuentes/DOM-03.mmd).
 
-**Lectura:** si un dato tiene un solo dueño, nunca hay dos versiones que reconciliar. Si mañana el dueño quiere editar precios desde el celular (P-01), la carta cambia de columna y pasa a bajar al local; el mecanismo es el mismo.
+**Lectura:** si un dato tiene un solo dueño, nunca hay dos versiones que reconciliar. La carta se movió a la nube para que el dueño cambie precios desde el celular (ADR-0010): cambió de columna y el mecanismo siguió siendo el mismo.

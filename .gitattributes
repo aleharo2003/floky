@@ -11,3 +11,11 @@
 *.jpg binary
 *.ico binary
 *.woff2 binary
+
+# Archivos generados: GitHub los colapsa en los PRs y no cuentan en las estadísticas
+docs/diagramas/svg/** linguist-generated
+docs/diagramas/png/** linguist-generated
+docs/diagramas/fuentes/** linguist-generated
+docs/diagramas/manifest.json linguist-generated
+docs/diagramas/galeria.html linguist-generated
+docs/backlog/jira-import.csv linguist-generated
